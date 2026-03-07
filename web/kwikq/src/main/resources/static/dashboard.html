@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikQ — Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>Kwik<span>Q</span></h1>
+        </div>
+        <div class="nav-user">
+            <span id="userName"></span>
+            <span class="badge" id="userRole"></span>
+            <button class="btn btn-danger btn-sm" onclick="logout()">Sign out</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Greeting -->
+        <div class="welcome-section">
+            <h2>Hello, <span id="welcomeName"></span></h2>
+            <p>Signed in as <strong id="welcomeRole"></strong></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <h3>Queue Status</h3>
+                    <p class="stat-value">No active queue</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-info">
+                    <h3>Est. Wait</h3>
+                    <p class="stat-value">&mdash;</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎟️</div>
+                <div class="stat-info">
+                    <h3>Your Token</h3>
+                    <p class="stat-value">&mdash;</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3>Ahead of You</h3>
+                    <p class="stat-value">&mdash;</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services -->
+        <div class="section-card">
+            <h3>Library Services</h3>
+            <p>Queue features coming soon. Your account is ready to go.</p>
+            <div class="service-list">
+                <div class="service-item">📚 Book Borrowing</div>
+                <div class="service-item">📖 Book Returning</div>
+                <div class="service-item">🔍 Research Assistance</div>
+                <div class="service-item">💳 Library Card Services</div>
+            </div>
+        </div>
+
+        <p class="footer-text">KwikQ &copy; 2026 &middot; Library Queue Management</p>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const auth = getAuth();
+        if (!auth) {
+            window.location.href = '/index.html';
+        } else {
+            document.getElementById('userName').textContent = auth.name;
+            document.getElementById('userRole').textContent = auth.role;
+            document.getElementById('welcomeName').textContent = auth.name.split(' ')[0];
+            document.getElementById('welcomeRole').textContent =
+                auth.role === 'PATRON' ? 'Library Patron' : 'Library Staff';
+        }
+    </script>
+</body>
+</html>
