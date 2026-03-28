@@ -1,0 +1,38 @@
+package com.example.kwikq.session
+
+import android.content.Context
+
+class SessionManager(context: Context) {
+    private val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    fun saveAuthSession(token: String, name: String, email: String, role: String) {
+        prefs.edit()
+            .putString(KEY_TOKEN, token)
+            .putString(KEY_NAME, name)
+            .putString(KEY_EMAIL, email)
+            .putString(KEY_ROLE, role)
+            .apply()
+    }
+
+    fun clearSession() {
+        prefs.edit().clear().apply()
+    }
+
+    fun isLoggedIn(): Boolean {
+        return !prefs.getString(KEY_TOKEN, null).isNullOrBlank()
+    }
+
+    fun getName(): String? = prefs.getString(KEY_NAME, null)
+
+    fun getEmail(): String? = prefs.getString(KEY_EMAIL, null)
+
+    fun getRole(): String? = prefs.getString(KEY_ROLE, null)
+
+    companion object {
+        private const val PREF_NAME = "kwikq_auth"
+        private const val KEY_TOKEN = "token"
+        private const val KEY_NAME = "name"
+        private const val KEY_EMAIL = "email"
+        private const val KEY_ROLE = "role"
+    }
+}

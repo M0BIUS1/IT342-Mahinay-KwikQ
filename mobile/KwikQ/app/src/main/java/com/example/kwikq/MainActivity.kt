@@ -9,10 +9,12 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.kwikq.network.ApiErrorParser
 import com.example.kwikq.network.AuthResponse
 import com.example.kwikq.network.LoginRequest
 import com.example.kwikq.network.RetrofitClient
+import com.example.kwikq.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -25,10 +27,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progressLogin: ProgressBar
     private lateinit var tvStatus: TextView
     private lateinit var tvGoToRegister: TextView
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        sessionManager = SessionManager(this)
+        if (sessionManager.isLoggedIn()) {
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.putExtra("userName", sessionManager.getName())
+            intent.putExtra("email", sessionManager.getEmail())
+            intent.putExtra("role", sessionManager.getRole())
+            startActivity(intent)
+            finish()
+            return
+        }
 
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
@@ -55,9 +69,12 @@ class MainActivity : AppCompatActivity() {
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString()
 
+        etEmail.error = null
+        etPassword.error = null
+
         val validationError = validateInput(email, password)
         if (validationError != null) {
-            showStatus(validationError)
+            showStatus(validationError, true)
             return
         }
 
@@ -71,35 +88,51 @@ class MainActivity : AppCompatActivity() {
 
                     if (response.isSuccessful && response.body() != null) {
                         val auth = response.body()!!
+                        sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
                         val intent = Intent(this@MainActivity, HomeActivity::class.java)
                         intent.putExtra("userName", auth.name)
+                        intent.putExtra("email", auth.email)
+                        intent.putExtra("role", auth.role)
                         startActivity(intent)
                         finish()
                     } else {
-                        showStatus(ApiErrorParser.getMessage(response))
+                        showStatus(ApiErrorParser.getMessage(response), true)
                     }
                 }
 
                 override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
                     showLoading(false)
-                    showStatus(getString(R.string.network_error, t.localizedMessage ?: "Unknown error"))
+                    showStatus(getString(R.string.network_error, t.localizedMessage ?: "Unknown error"), true)
                 }
             })
     }
 
     private fun validateInput(email: String, password: String): String? {
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return getString(R.string.validation_email)
-        if (password.isBlank()) return getString(R.string.validation_password_required)
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.error = getString(R.string.validation_email)
+            return getString(R.string.validation_email)
+        }
+        if (password.isBlank()) {
+            etPassword.error = getString(R.string.validation_password_required)
+            return getString(R.string.validation_password_required)
+        }
         return null
     }
 
     private fun showLoading(isLoading: Boolean) {
         progressLogin.visibility = if (isLoading) View.VISIBLE else View.GONE
         btnLogin.isEnabled = !isLoading
+        btnLogin.text = getString(if (isLoading) R.string.login_loading else R.string.login)
+        etEmail.isEnabled = !isLoading
+        etPassword.isEnabled = !isLoading
+        tvGoToRegister.isEnabled = !isLoading
     }
 
-    private fun showStatus(message: String) {
+    private fun showStatus(message: String, isError: Boolean) {
         tvStatus.text = message
+        tvStatus.setTextColor(
+            ContextCompat.getColor(this, if (isError) R.color.kw_danger else R.color.kw_accent)
+        )
         tvStatus.visibility = View.VISIBLE
     }
 }
