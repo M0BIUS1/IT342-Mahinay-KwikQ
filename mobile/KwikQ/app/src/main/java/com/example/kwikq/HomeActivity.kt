@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.kwikq.session.SessionManager
+import com.example.kwikq.supabase.SupabaseClientManager
+import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
 
@@ -33,11 +36,24 @@ class HomeActivity : AppCompatActivity() {
         }
 
         btnLogout.setOnClickListener {
-            sessionManager.clearSession()
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+            lifecycleScope.launch {
+                try {
+                    // Sign out from Supabase
+                    val token = sessionManager.getToken()
+                    if (!token.isNullOrBlank()) {
+                        SupabaseClientManager.signOut(token)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                
+                // Clear local session
+                sessionManager.clearSession()
+                val intent = Intent(this@HomeActivity, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
         }
     }
 }

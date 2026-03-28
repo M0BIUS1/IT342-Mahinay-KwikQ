@@ -10,14 +10,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.kwikq.network.ApiErrorParser
-import com.example.kwikq.network.AuthResponse
-import com.example.kwikq.network.LoginRequest
-import com.example.kwikq.network.RetrofitClient
+import androidx.lifecycle.lifecycleScope
 import com.example.kwikq.session.SessionManager
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.kwikq.supabase.SupabaseClientManager
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -81,30 +77,31 @@ class MainActivity : AppCompatActivity() {
         showLoading(true)
         tvStatus.visibility = View.GONE
 
-        RetrofitClient.authApiService.login(LoginRequest(email, password))
-            .enqueue(object : Callback<AuthResponse> {
-                override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                    showLoading(false)
+        lifecycleScope.launch {
+            try {
+                val response = SupabaseClientManager.signIn(email, password)
 
-                    if (response.isSuccessful && response.body() != null) {
-                        val auth = response.body()!!
-                        sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
-                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
-                        intent.putExtra("userName", auth.name)
-                        intent.putExtra("email", auth.email)
-                        intent.putExtra("role", auth.role)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        showStatus(ApiErrorParser.getMessage(response), true)
-                    }
+                if (response != null && response.access_token != null) {
+                    val userName = email.substringBefore("@")
+                    sessionManager.saveAuthSession(response.access_token, userName, email, "user")
+                    
+                    // Show success confirmation
+                    android.widget.Toast.makeText(this@MainActivity, "✓ Login successful! Welcome back, $userName!", android.widget.Toast.LENGTH_LONG).show()
+                    
+                    val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                    intent.putExtra("userName", userName)
+                    intent.putExtra("email", email)
+                    intent.putExtra("role", "user")
+                    startActivity(intent)
+                    finish()
+                } else {
+                    showStatus(getString(R.string.network_error, "Login failed"), true)
                 }
-
-                override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
-                    showLoading(false)
-                    showStatus(getString(R.string.network_error, t.localizedMessage ?: "Unknown error"), true)
-                }
-            })
+            } catch (e: Exception) {
+                showLoading(false)
+                showStatus(getString(R.string.network_error, e.localizedMessage ?: "Unknown error"), true)
+            }
+        }
     }
 
     private fun validateInput(email: String, password: String): String? {
@@ -129,6 +126,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showStatus(message: String, isError: Boolean) {
+        showLoading(false)
         tvStatus.text = message
         tvStatus.setTextColor(
             ContextCompat.getColor(this, if (isError) R.color.kw_danger else R.color.kw_accent)
