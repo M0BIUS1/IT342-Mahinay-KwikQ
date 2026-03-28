@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">KwikQ</string>
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Login to continue to KwikQ.</string>
+    <string name="register_title">Create Account</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="logout">Logout</string>
+    <string name="no_account_register">No account yet? Register here</string>
+    <string name="have_account_login">Already have an account? Login here</string>
+    <string name="register_success">Registration successful. Please login.</string>
+    <string name="validation_name">Name must be at least 2 characters.</string>
+    <string name="validation_email">Please enter a valid email address.</string>
+    <string name="validation_password">Password must be at least 6 characters.</string>
+    <string name="validation_password_required">Password is required.</string>
+    <string name="network_error">Network error: %1$s</string>
+    <string name="welcome_default">Welcome</string>
+    <string name="welcome_user">Welcome, %1$s</string>
+    <string name="login_success_landing">You are now logged in.</string>
+</resources>
