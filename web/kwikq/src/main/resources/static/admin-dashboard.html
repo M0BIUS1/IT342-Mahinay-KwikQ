@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikQ - Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo"><h1>Kwik<span>Q</span></h1></div>
+            <button class="btn btn-secondary" onclick="logout()">Log out</button>
+        </header>
+
+        <main class="dashboard-content">
+            <section class="welcome-card">
+                <h2>Admin Dashboard</h2>
+                <p class="lead">Admins can record and manage books.</p>
+                <p>Welcome, <strong id="userName"></strong> (<span id="userRole"></span>)</p>
+                <span class="role-pill">Admin Access</span>
+                <p id="roleMessage"></p>
+                <div class="quick-metrics">
+                    <div class="metric">
+                        <div class="k">Scope</div>
+                        <div class="v">Full Catalog</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Actions</div>
+                        <div class="v">Create / Update</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Control</div>
+                        <div class="v">Admin Level</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="welcome-card book-layout">
+                <h3>Book Management</h3>
+                <p class="lead">Create, edit, and organize your library catalog records.</p>
+                <form id="bookForm" class="book-form">
+                    <div class="form-group">
+                        <label for="bookTitle">Book Title</label>
+                        <input id="bookTitle" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookAuthor">Author</label>
+                        <input id="bookAuthor" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookCategory">Category</label>
+                        <input id="bookCategory" type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookCode">Unique Code (ISBN or ID)</label>
+                        <input id="bookCode" type="text" required>
+                    </div>
+                    <div class="book-form-actions">
+                        <button id="bookSubmitBtn" type="submit" class="btn btn-primary">Add Book</button>
+                        <button id="bookCancelBtn" type="button" class="btn btn-secondary" style="display:none;">Cancel Edit</button>
+                    </div>
+                </form>
+                    <p id="bookStatus" class="status-banner" style="display:none;"></p>
+
+                <div class="book-toolbar">
+                    <input id="bookSearchInput" type="text" placeholder="Search title, author, or code">
+                    <select id="bookCategoryFilter">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+
+                <div class="book-table-wrap">
+                    <table class="book-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Unique Code</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booksTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="book-pagination">
+                    <button id="booksPrevBtn" type="button" class="btn btn-secondary">Previous</button>
+                    <span id="booksPageInfo"></span>
+                    <button id="booksNextBtn" type="button" class="btn btn-secondary">Next</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/book-manager.js"></script>
+    <script>
+        const auth = getAuth();
+        if (!auth) {
+            window.location.href = '/index.html';
+        } else {
+            if ((auth.role || '').toUpperCase() !== 'ADMIN') {
+                redirectToDashboard(auth);
+            }
+            document.getElementById('userName').textContent = auth.name || 'User';
+            document.getElementById('userRole').textContent = auth.role || 'ADMIN';
+            callProtected('/api/dashboard/admin')
+                .then(data => {
+                    document.getElementById('roleMessage').textContent = data.message;
+                })
+                .catch(err => {
+                    document.getElementById('roleMessage').textContent = err.message;
+                });
+            initBookManager();
+        }
+    </script>
+</body>
+</html>

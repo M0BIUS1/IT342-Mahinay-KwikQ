@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikQ - Student Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo"><h1>Kwik<span>Q</span></h1></div>
+            <button class="btn btn-secondary" onclick="logout()">Log out</button>
+        </header>
+
+        <main class="dashboard-content">
+            <section class="welcome-card">
+                <h2>Student Dashboard</h2>
+                <p class="lead">Browse your personalized space for queue and account activity.</p>
+                <p>Welcome, <strong id="userName"></strong> (<span id="userRole"></span>)</p>
+                <span class="role-pill">Student Access</span>
+                <p id="roleMessage"></p>
+                <div class="quick-metrics">
+                    <div class="metric">
+                        <div class="k">Queue</div>
+                        <div class="v">Ready</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Account</div>
+                        <div class="v">Active</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Role</div>
+                        <div class="v">Student</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="welcome-card">
+                <h3>What You Can Do</h3>
+                <p class="lead">Use this dashboard to monitor your requests and receive librarian updates in one place.</p>
+                <div class="quick-metrics">
+                    <div class="metric">
+                        <div class="k">Request Status</div>
+                        <div class="v">Track</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Notifications</div>
+                        <div class="v">Review</div>
+                    </div>
+                    <div class="metric">
+                        <div class="k">Support</div>
+                        <div class="v">Reach Staff</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const auth = getAuth();
+        if (!auth) {
+            window.location.href = '/index.html';
+        } else {
+            if ((auth.role || '').toUpperCase() !== 'STUDENT') {
+                redirectToDashboard(auth);
+            }
+            document.getElementById('userName').textContent = auth.name || 'User';
+            document.getElementById('userRole').textContent = auth.role || 'STUDENT';
+            callProtected('/api/dashboard/student')
+                .then(data => {
+                    document.getElementById('roleMessage').textContent = data.message;
+                })
+                .catch(err => {
+                    document.getElementById('roleMessage').textContent = err.message;
+                });
+        }
+    </script>
+</body>
+</html>
