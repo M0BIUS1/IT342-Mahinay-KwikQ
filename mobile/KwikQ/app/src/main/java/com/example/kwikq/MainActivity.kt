@@ -11,9 +11,13 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.kwikq.network.ApiErrorParser
+import com.example.kwikq.network.LoginRequest
+import com.example.kwikq.network.RetrofitClient
 import com.example.kwikq.session.SessionManager
-import com.example.kwikq.supabase.SupabaseClientManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,23 +83,25 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = SupabaseClientManager.signIn(email, password)
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.authApiService.login(LoginRequest(email, password)).execute()
+                }
 
-                if (response != null && response.access_token != null) {
-                    val userName = email.substringBefore("@")
-                    sessionManager.saveAuthSession(response.access_token, userName, email, "user")
+                if (response.isSuccessful && response.body() != null) {
+                    val auth = response.body()!!
+                    sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
                     
                     // Show success confirmation
-                    android.widget.Toast.makeText(this@MainActivity, "✓ Login successful! Welcome back, $userName!", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(this@MainActivity, "✓ Login successful! Welcome back, ${auth.name}!", android.widget.Toast.LENGTH_LONG).show()
                     
                     val intent = Intent(this@MainActivity, HomeActivity::class.java)
-                    intent.putExtra("userName", userName)
-                    intent.putExtra("email", email)
-                    intent.putExtra("role", "user")
+                    intent.putExtra("userName", auth.name)
+                    intent.putExtra("email", auth.email)
+                    intent.putExtra("role", auth.role)
                     startActivity(intent)
                     finish()
                 } else {
-                    showStatus(getString(R.string.network_error, "Login failed"), true)
+                    showStatus(ApiErrorParser.getMessage(response), true)
                 }
             } catch (e: Exception) {
                 showLoading(false)

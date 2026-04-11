@@ -39,6 +39,22 @@ KwikQ is a Library Queue Management project for IT342 with:
 - Android Studio / Android SDK
 - Android Emulator or device
 
+### Database Setup
+The backend now uses Supabase Postgres for runtime data storage. Set these environment variables before starting the web backend:
+
+- `SUPABASE_DB_URL`
+- `SUPABASE_DB_USERNAME`
+- `SUPABASE_DB_PASSWORD`
+- `SUPABASE_URL`
+- `SUPABASE_API_KEY`
+- `SUPABASE_JWT_SECRET`
+
+If these are not set, the backend will not be able to connect to Supabase at runtime.
+
+Test execution still uses the local H2 database so the Maven test suite remains isolated from Supabase.
+
+See [backend/kwikq/.env.example](backend/kwikq/.env.example) for a copyable environment template.
+
 ## Run Backend (Spring Boot)
 From repository root:
 
@@ -49,6 +65,8 @@ cd web/kwikq
 
 Backend base URL (local):
 - `http://localhost:8080`
+
+For Supabase-backed runtime, start the backend with the Supabase environment variables set in the same terminal session or through your IDE run configuration.
 
 ## Run Mobile App (Android)
 From repository root:

@@ -2,6 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val emulatorBaseUrl = (project.findProperty("EMULATOR_BASE_URL") as String?)
+    ?: (project.findProperty("DEBUG_BASE_URL") as String?)
+    ?: "http://10.0.2.2:8080/"
+val deviceBaseUrl = (project.findProperty("DEVICE_BASE_URL") as String?) ?: "http://192.168.1.100:8080/"
+val releaseBaseUrl = (project.findProperty("RELEASE_BASE_URL") as String?) ?: "https://api.example.com/"
+
 android {
     namespace = "com.example.kwikq"
     compileSdk {
@@ -16,9 +22,24 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions += "backendTarget"
+    productFlavors {
+        create("emulator") {
+            dimension = "backendTarget"
+            buildConfigField("String", "BASE_URL", "\"$emulatorBaseUrl\"")
+        }
+        create("device") {
+            dimension = "backendTarget"
+            buildConfigField("String", "BASE_URL", "\"$deviceBaseUrl\"")
+        }
+        create("prod") {
+            dimension = "backendTarget"
+            buildConfigField("String", "BASE_URL", "\"$releaseBaseUrl\"")
+        }
     }
 
     buildTypes {

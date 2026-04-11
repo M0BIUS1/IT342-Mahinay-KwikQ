@@ -11,9 +11,13 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.kwikq.network.ApiErrorParser
+import com.example.kwikq.network.RegisterRequest
+import com.example.kwikq.network.RetrofitClient
 import com.example.kwikq.session.SessionManager
-import com.example.kwikq.supabase.SupabaseClientManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -72,32 +76,30 @@ class RegisterActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                android.util.Log.d("RegisterActivity", "Starting registration for email: $email")
-                val response = SupabaseClientManager.signUp(email, password)
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.authApiService.register(RegisterRequest(name, email, password)).execute()
+                }
 
-                if (response != null && response.access_token != null) {
-                    android.util.Log.d("RegisterActivity", "Registration successful, token: ${response.access_token?.take(20)}...")
-                    // Store user session with Supabase token
-                    sessionManager.saveAuthSession(response.access_token, name, email, "user")
+                if (response.isSuccessful && response.body() != null) {
+                    val auth = response.body()!!
+                    sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
 
                     // Show success confirmation
-                    android.widget.Toast.makeText(this@RegisterActivity, "✓ Registration successful! Welcome, $name!", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(this@RegisterActivity, "✓ Registration successful! Welcome, ${auth.name}!", android.widget.Toast.LENGTH_LONG).show()
 
                     val intent = Intent(this@RegisterActivity, HomeActivity::class.java)
-                    intent.putExtra("userName", name)
-                    intent.putExtra("email", email)
-                    intent.putExtra("role", "user")
+                    intent.putExtra("userName", auth.name)
+                    intent.putExtra("email", auth.email)
+                    intent.putExtra("role", auth.role)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                     finish()
                 } else {
-                    android.util.Log.e("RegisterActivity", "Registration failed: response=$response, token=${response?.access_token}")
-                    showStatus("Registration failed. Please check your credentials.", true)
+                    showStatus(ApiErrorParser.getMessage(response), true)
                 }
             } catch (e: Exception) {
-                android.util.Log.e("RegisterActivity", "Registration exception: ${e.message}", e)
                 showLoading(false)
-                showStatus("Network error: ${e.message ?: "Unknown error"}", true)
+                showStatus(getString(R.string.network_error, e.message ?: "Unknown error"), true)
             }
         }
     }
