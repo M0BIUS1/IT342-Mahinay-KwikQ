@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Books - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        .book-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .due-date-info {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+            align-items: center;
+        }
+
+        .progress-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+            transition: width 0.3s ease;
+        }
+
+        .days-left {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .days-left.urgent {
+            color: var(--danger-color);
+        }
+
+        .days-left.warning {
+            color: var(--warning-color);
+        }
+
+        .days-left.safe {
+            color: var(--success-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>📚 My Books</h2>
+                <p class="text-muted mt-1">Currently borrowed books and due dates</p>
+            </div>
+
+            <div id="statsBar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="text-align: center;">
+                    <h3 id="activeCount" style="font-size: 2rem; color: var(--primary-color);">0</h3>
+                    <p class="text-muted">Active Borrows</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 id="overdueCount" style="font-size: 2rem; color: var(--danger-color);">0</h3>
+                    <p class="text-muted">Overdue</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="booksContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadMyBooks() {
+            try {
+                // Get active borrowings
+                const response = await fetch(`${API_BASE}/borrowings/active?page=0&size=100`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('activeCount').textContent = data.totalElements || 0;
+                    displayBooks(data.content || []);
+                    
+                    // Count overdue
+                    const overdue = (data.content || []).filter(b => {
+                        const dueDate = new Date(b.dueDate);
+                        return dueDate < new Date();
+                    }).length;
+                    document.getElementById('overdueCount').textContent = overdue;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayBooks(books) {
+            const container = document.getElementById('booksContainer');
+            container.innerHTML = '';
+
+            if (books.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No active borrowings</p>';
+                return;
+            }
+
+            books.forEach(book => {
+                const now = new Date();
+                const dueDate = new Date(book.dueDate);
+                const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+                const totalDays = 14;
+                const progressPercent = Math.max(0, Math.min(100, 100 - (daysLeft / totalDays * 100)));
+
+                let statusClass = daysLeft > 7 ? 'safe' : daysLeft > 3 ? 'warning' : 'urgent';
+                let statusText = daysLeft <= 0 ? '⏰ OVERDUE' : `📅 ${daysLeft} days left`;
+
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h3>${book.bookTitle}</h3>
+                            <p class="text-muted">${book.bookAuthor}</p>
+                            <p><code>${book.copyCode}</code></p>
+                        </div>
+                        <span class="status-badge" style="background: ${daysLeft <= 0 ? '#fee2e2' : daysLeft <= 3 ? '#fef3c7' : '#dcfce7'}; color: ${daysLeft <= 0 ? '#991b1b' : daysLeft <= 3 ? '#92400e' : '#166534'};">
+                            ${statusText}
+                        </span>
+                    </div>
+
+                    <div class="due-date-info">
+                        <div>
+                            <p class="text-muted" style="font-size: 0.9rem;">Borrowed: ${new Date(book.borrowedAt).toLocaleDateString()}</p>
+                            <p class="text-muted" style="font-size: 0.9rem;">Due: ${dueDate.toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-success btn-small" onclick="renewBook(${book.id})">🔄 Renew</button>
+                        <button class="btn btn-secondary btn-small" onclick="returnBook(${book.id})">📤 Return</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function renewBook(borrowingId) {
+            if (!confirm('Renew this book for another 14 days?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/borrowings/renew/${borrowingId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Book renewed!');
+                    loadMyBooks();
+                } else {
+                    alert('❌ Cannot renew this book');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error renewing book');
+            }
+        }
+
+        async function returnBook(borrowingId) {
+            if (!confirm('Return this book?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/borrowings/return/${borrowingId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Book returned!');
+                    loadMyBooks();
+                } else {
+                    alert('❌ Error returning book');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error returning book');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load on page load
+        loadMyBooks();
+        
+        // Refresh every 30 seconds
+        setInterval(loadMyBooks, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Queues - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="/student-profile.html">Profile</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>⏳ My Queues</h2>
+                <p class="text-muted mt-1">Books you're waiting for</p>
+            </div>
+
+            <div id="queuesContainer"></div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentPage = 0;
+        const pageSize = 5;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadQueues(page = 0) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/queues/my-queues?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayQueues(data);
+                    updatePagination(data);
+                } else {
+                    showError('Failed to load queues');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error loading queues');
+            }
+        }
+
+        function displayQueues(data) {
+            const container = document.getElementById('queuesContainer');
+            container.innerHTML = '';
+
+            if (data.content.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <strong>No queues yet!</strong> Browse available books and add them to your queue.
+                    </div>
+                `;
+                return;
+            }
+
+            const queueCards = document.createElement('div');
+            queueCards.className = 'grid grid-2';
+
+            data.content.forEach(queue => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="flex-between mb-2">
+                        <h3>${queue.bookTitle}</h3>
+                        <span class="badge badge-primary">Position #${queue.queuePosition}</span>
+                    </div>
+                    <p><strong>Author:</strong> ${queue.bookAuthor}</p>
+                    <p><strong>Status:</strong> <span class="badge badge-warning">${queue.status}</span></p>
+                    <p class="text-muted text-small">Queued on: ${new Date(queue.queuedAt).toLocaleDateString()}</p>
+                    <div class="mt-2">
+                        <button class="btn btn-small btn-danger" onclick="removeFromQueue(${queue.id})">
+                            Remove from Queue
+                        </button>
+                    </div>
+                `;
+                queueCards.appendChild(card);
+            });
+
+            container.appendChild(queueCards);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function removeFromQueue(queueId) {
+            if (!confirm('Remove this book from your queue?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/queues/${queueId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showSuccess('Removed from queue');
+                    loadQueues(currentPage);
+                } else {
+                    showError('Failed to remove from queue');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error removing from queue');
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadQueues(currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadQueues(currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        function showSuccess(message) {
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        // Load initial data
+        loadQueues(0);
+    </script>
+</body>
+</html>

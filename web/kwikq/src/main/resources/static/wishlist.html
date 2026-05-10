@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>📌 My Wishlist</h2>
+                <p class="text-muted mt-1">Books I want to read</p>
+            </div>
+
+            <div id="statsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="text-align: center;">
+                    <h3 id="wishlistCount" style="font-size: 2rem; color: var(--primary-color);">0</h3>
+                    <p class="text-muted">Wishlist Items</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="wishlistContainer"></div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentPage = 0;
+        const pageSize = 10;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadWishlist(page = 0) {
+            try {
+                // Get count
+                const countRes = await fetch(`${API_BASE}/wishlist/count`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (countRes.ok) {
+                    const countData = await countRes.json();
+                    const countMatch = countData.message.match(/Count: (\d+)/);
+                    const count = countMatch ? countMatch[1] : 0;
+                    document.getElementById('wishlistCount').textContent = count;
+                }
+
+                // Get wishlist
+                const response = await fetch(
+                    `${API_BASE}/wishlist/my-wishlist?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayWishlist(data.content || []);
+                    updatePagination(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayWishlist(items) {
+            const container = document.getElementById('wishlistContainer');
+            container.innerHTML = '';
+
+            if (items.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Your wishlist is empty</p>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>${item.title}</h3>
+                    <p class="text-muted">${item.author}</p>
+                    <p><small>${item.category}</small></p>
+                    <p><small class="text-muted">Added ${new Date(item.addedAt).toLocaleDateString()}</small></p>
+                    <button class="btn btn-danger btn-small" onclick="removeFromWishlist(${item.bookId})">❌ Remove</button>
+                `;
+                grid.appendChild(card);
+            });
+
+            container.appendChild(grid);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function removeFromWishlist(bookId) {
+            if (!confirm('Remove from wishlist?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/wishlist/remove/${bookId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Removed from wishlist');
+                    loadWishlist(currentPage);
+                } else {
+                    alert('❌ Error removing from wishlist');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error');
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadWishlist(currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadWishlist(currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load on page load
+        loadWishlist(0);
+    </script>
+</body>
+</html>

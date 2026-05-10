@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Configuration - Admin</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/admin-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        <div class="card">
+            <div class="card-header">
+                <h2>⚙️ System Configuration</h2>
+                <p class="text-muted mt-1">Manage system settings and parameters</p>
+            </div>
+
+            <div class="form-group">
+                <label>📅 Loan Period (days)</label>
+                <input type="number" id="loanDays" placeholder="14" min="1" value="14">
+            </div>
+
+            <div class="form-group">
+                <label>🛑 Borrowing Limit (books)</label>
+                <input type="number" id="borrowingLimit" placeholder="5" min="1" value="5">
+            </div>
+
+            <div class="form-group">
+                <label>💰 Fine Rate ($ per day)</label>
+                <input type="number" id="fineRate" placeholder="10" step="0.01" value="10.00">
+            </div>
+
+            <div class="form-group">
+                <label>🌐 Library Name</label>
+                <input type="text" id="libraryName" placeholder="Library Name" value="KwikQ Library">
+            </div>
+
+            <div class="form-group">
+                <label>📧 Admin Email</label>
+                <input type="email" id="adminEmail" placeholder="admin@library.com">
+            </div>
+
+            <button class="btn btn-primary" onclick="saveConfig()">💾 Save Settings</button>
+        </div>
+
+        <div id="successMessage" style="display: none; margin-top: 1rem;" class="alert alert-success">
+            ✅ Settings saved successfully!
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function saveConfig() {
+            try {
+                const configs = [
+                    { key: 'LOAN_DAYS', value: document.getElementById('loanDays').value },
+                    { key: 'BORROWING_LIMIT', value: document.getElementById('borrowingLimit').value },
+                    { key: 'FINE_RATE', value: document.getElementById('fineRate').value },
+                    { key: 'LIBRARY_NAME', value: document.getElementById('libraryName').value },
+                    { key: 'ADMIN_EMAIL', value: document.getElementById('adminEmail').value }
+                ];
+
+                for (let config of configs) {
+                    await fetch(
+                        `${API_BASE}/config/${config.key}?value=${encodeURIComponent(config.value)}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        }
+                    );
+                }
+
+                document.getElementById('successMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('successMessage').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error saving settings');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 package edu.cit.mahinay.kwikq.service;
 
-import edu.cit.mahinay.kwikq.entity.User;
-import edu.cit.mahinay.kwikq.repository.UserRepository;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.users.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

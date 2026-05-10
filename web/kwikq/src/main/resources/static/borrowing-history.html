@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrowing History - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="/student-profile.html">Profile</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>📚 Borrowing History</h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('active')">Active Borrows</button>
+                <button class="tab-btn" onclick="switchTab('history')">Complete History</button>
+            </div>
+
+            <!-- Active Borrows Tab -->
+            <div id="active" class="tab-content active">
+                <div id="activeBorrows"></div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="tab-content">
+                <div id="borrowHistory"></div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentTab = 'active';
+        let currentPage = 0;
+        const pageSize = 5;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadBorrowings(tab = 'active', page = 0) {
+            const endpoint = tab === 'active' ? 'active' : 'history';
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE}/borrowings/${endpoint}?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayBorrowings(data, tab);
+                    updatePagination(data);
+                } else {
+                    showError('Failed to load borrowings');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error loading borrowings');
+            }
+        }
+
+        function displayBorrowings(data, tab) {
+            const container = document.getElementById(tab === 'active' ? 'activeBorrows' : 'borrowHistory');
+            container.innerHTML = '';
+
+            if (data.content.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No borrowings found</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Author</th>
+                        <th>Copy Code</th>
+                        <th>Borrowed Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        ${tab === 'active' ? '<th>Actions</th>' : '<th>Returned Date</th>'}
+                        ${tab === 'history' ? '<th>Fine</th>' : ''}
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+            data.content.forEach(borrow => {
+                const row = document.createElement('tr');
+                const statusClass = borrow.status === 'ACTIVE' ? 'status-borrowed' :
+                                   borrow.status === 'OVERDUE' ? 'status-overdue' : 'status-available';
+                
+                let actionsCell = '';
+                if (tab === 'active') {
+                    actionsCell = `<td><button class="btn btn-small btn-danger" onclick="returnBook(${borrow.id})">Return</button></td>`;
+                } else {
+                    actionsCell = `<td>${borrow.returnedAt || '-'}</td>`;
+                }
+
+                let fineCell = tab === 'history' ? `<td>$${(borrow.fineAmount || 0).toFixed(2)}</td>` : '';
+
+                row.innerHTML = `
+                    <td><strong>${borrow.bookTitle}</strong></td>
+                    <td>${borrow.bookAuthor}</td>
+                    <td><code>${borrow.copyCode}</code></td>
+                    <td>${new Date(borrow.borrowedAt).toLocaleDateString()}</td>
+                    <td>${new Date(borrow.dueDate).toLocaleDateString()}</td>
+                    <td><span class="${statusClass}">${borrow.status}</span></td>
+                    ${actionsCell}
+                    ${fineCell}
+                `;
+                tbody.appendChild(row);
+            });
+
+            container.appendChild(table);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function returnBook(borrowingId) {
+            if (!confirm('Are you sure you want to return this book?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/borrowings/return/${borrowingId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showSuccess('Book returned successfully');
+                    loadBorrowings(currentTab, currentPage);
+                } else {
+                    showError('Failed to return book');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error returning book');
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            currentPage = 0;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+
+            loadBorrowings(tab, 0);
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadBorrowings(currentTab, currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadBorrowings(currentTab, currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        function showSuccess(message) {
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        // Load initial data
+        loadBorrowings('active', 0);
+    </script>
+</body>
+</html>

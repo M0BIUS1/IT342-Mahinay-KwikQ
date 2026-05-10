@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments & Fines - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        <div class="card">
+            <div class="card-header">
+                <h2>💰 Payments & Fines</h2>
+                <p class="text-muted mt-1">Manage your outstanding fines</p>
+            </div>
+
+            <!-- Outstanding Amount -->
+            <div class="alert alert-info" id="pendingAlert"></div>
+
+            <!-- Payment History -->
+            <div class="mt-3">
+                <h3>Payment History</h3>
+                <div id="paymentsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentPage = 0;
+        const pageSize = 10;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadPayments() {
+            try {
+                // Get pending amount
+                const amountRes = await fetch(`${API_BASE}/payments/pending-amount`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (amountRes.ok) {
+                    const amountData = await amountRes.json();
+                    const pending = amountData.message.split('$')[1] || '0.00';
+                    document.getElementById('pendingAlert').innerHTML = `
+                        <strong>Outstanding Amount: $${pending}</strong><br>
+                        ${pending > 0 ? `<button class="btn btn-danger mt-2" onclick="processPayment()">💳 Pay Now</button>` : 'No outstanding fines'}
+                    `;
+                }
+
+                // Get payment history
+                const historyRes = await fetch(
+                    `${API_BASE}/payments/my-payments?page=${currentPage}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (historyRes.ok) {
+                    const data = await historyRes.json();
+                    displayPayments(data.content || []);
+                    updatePagination(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayPayments(payments) {
+            const container = document.getElementById('paymentsContainer');
+            container.innerHTML = '';
+
+            if (payments.length === 0) {
+                container.innerHTML = '<p class="text-muted">No payment history</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+            payments.forEach(payment => {
+                const statusBadge = payment.status === 'PENDING' ? 
+                    '<span class="badge" style="background: #fbbf24; color: #78350f;">Pending</span>' :
+                    '<span class="badge" style="background: #86efac; color: #166534;">Paid</span>';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>$${payment.amount.toFixed(2)}</strong></td>
+                    <td>${payment.description}</td>
+                    <td>${statusBadge}</td>
+                    <td>${new Date(payment.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        ${payment.status === 'PENDING' ? `<button class="btn btn-small" onclick="payFine(${payment.id})">Pay</button>` : '✓'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            container.appendChild(table);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function payFine(paymentId) {
+            if (!confirm('Confirm payment?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/payments/pay/${paymentId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Payment successful!');
+                    loadPayments();
+                } else {
+                    alert('❌ Payment failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error processing payment');
+            }
+        }
+
+        function processPayment() {
+            alert('💳 Redirecting to payment gateway...\n(Stripe/PayPal integration - coming soon)');
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadPayments();
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadPayments();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load on page load
+        loadPayments();
+    </script>
+</body>
+</html>

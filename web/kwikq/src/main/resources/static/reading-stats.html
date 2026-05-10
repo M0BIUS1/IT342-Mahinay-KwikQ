@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Stats - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .achievement {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+        }
+
+        .achievement-text h4 {
+            margin: 0;
+            color: var(--dark-text);
+        }
+
+        .achievement-text p {
+            margin: 0.25rem 0 0 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>📊 Reading Statistics</h2>
+                <p class="text-muted mt-1">Track your reading progress and achievements</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="stat-box">
+                <div class="stat-label">📚 Total Books Read</div>
+                <div class="stat-number" id="totalBooks">0</div>
+            </div>
+            <div class="stat-box" style="background: linear-gradient(135deg, var(--success-color), #34d399);">
+                <div class="stat-label">🔄 Currently Borrowing</div>
+                <div class="stat-number" id="activeBorrows">0</div>
+            </div>
+            <div class="stat-box" style="background: linear-gradient(135deg, var(--warning-color), #fbbf24);">
+                <div class="stat-label">⏰ Overdue Books</div>
+                <div class="stat-number" id="overdue">0</div>
+            </div>
+            <div class="stat-box" style="background: linear-gradient(135deg, var(--secondary-color), #f472b6);">
+                <div class="stat-label">📖 Avg Days Per Book</div>
+                <div class="stat-number" id="avgDays">0</div>
+            </div>
+        </div>
+
+        <!-- Favorite Category -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>🎯 Your Reading Profile</h3>
+            </div>
+            <p class="mt-2">Favorite Category: <strong id="favoriteCategory">Loading...</strong></p>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🏆 Achievements</h3>
+            </div>
+
+            <div id="achievementsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats/overview`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalBooks').textContent = stats.totalBooksRead || 0;
+                    document.getElementById('activeBorrows').textContent = stats.activeBorrows || 0;
+                    document.getElementById('overdue').textContent = stats.overdueCount || 0;
+                    document.getElementById('avgDays').textContent = (stats.averageDaysPerBook || 0).toFixed(1);
+                    document.getElementById('favoriteCategory').textContent = stats.favoriteCategory || 'Various';
+
+                    displayAchievements(stats);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayAchievements(stats) {
+            const container = document.getElementById('achievementsContainer');
+            container.innerHTML = '';
+
+            const achievements = [
+                { icon: '📚', title: 'Bookworm', desc: 'Read 10 books', condition: stats.totalBooksRead >= 10 },
+                { icon: '📖', title: 'Reader', desc: 'Read 5 books', condition: stats.totalBooksRead >= 5 },
+                { icon: '🔄', title: 'Active Borrower', desc: 'Borrow 3+ books', condition: stats.activeBorrows >= 3 },
+                { icon: '⏱️', title: 'Speedy Reader', desc: 'Avg less than 5 days per book', condition: stats.averageDaysPerBook < 5 }
+            ];
+
+            achievements.forEach(achievement => {
+                const div = document.createElement('div');
+                div.className = 'achievement';
+                div.innerHTML = `
+                    <div class="achievement-icon">${achievement.condition ? achievement.icon : '🔒'}</div>
+                    <div class="achievement-text">
+                        <h4>${achievement.title} ${achievement.condition ? '✅' : ''}</h4>
+                        <p>${achievement.desc}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load on page load
+        loadStats();
+    </script>
+</body>
+</html>

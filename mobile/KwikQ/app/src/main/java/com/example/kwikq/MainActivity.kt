@@ -12,8 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.kwikq.network.ApiErrorParser
-import com.example.kwikq.network.LoginRequest
 import com.example.kwikq.network.RetrofitClient
+import com.example.kwikq.repository.UserRepository
 import com.example.kwikq.session.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,12 +28,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var tvGoToRegister: TextView
     private lateinit var sessionManager: SessionManager
+    private lateinit var userRepository: UserRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         sessionManager = SessionManager(this)
+        userRepository = UserRepository(this, RetrofitClient.authApiService)
+        
         if (sessionManager.isLoggedIn()) {
             val intent = Intent(this, HomeActivity::class.java)
             intent.putExtra("userName", sessionManager.getName())
@@ -83,13 +86,13 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.authApiService.login(LoginRequest(email, password)).execute()
+                val result = withContext(Dispatchers.IO) {
+                    userRepository.loginUser(email, password)
                 }
 
-                if (response.isSuccessful && response.body() != null) {
-                    val auth = response.body()!!
-                    sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
+                if (result.isSuccess) {
+                    val auth = result.getOrNull()!!
+                    sessionManager.saveAuthSession(auth.id, auth.id, auth.name, auth.email, auth.role)
                     
                     // Show success confirmation
                     android.widget.Toast.makeText(this@MainActivity, "✓ Login successful! Welcome back, ${auth.name}!", android.widget.Toast.LENGTH_LONG).show()
@@ -101,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    showStatus(ApiErrorParser.getMessage(response), true)
+                    showStatus(result.exceptionOrNull()?.localizedMessage ?: "Login failed", true)
                 }
             } catch (e: Exception) {
                 showLoading(false)

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Book - Librarian</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/librarian-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="card">
+            <div class="card-header">
+                <h2>📚 Submit Book for Verification</h2>
+                <p class="text-muted mt-1">Submit a new book to the system for admin approval</p>
+            </div>
+
+            <form id="submitForm">
+                <div class="form-group">
+                    <label for="title">Book Title *</label>
+                    <input type="text" id="title" name="title" placeholder="Enter book title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="author">Author *</label>
+                    <input type="text" id="author" name="author" placeholder="Enter author name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <input type="text" id="category" name="category" placeholder="e.g., Science, Fiction, History" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="uniqueCode">Unique Code/ISBN *</label>
+                    <input type="text" id="uniqueCode" name="uniqueCode" placeholder="Enter unique identifier" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Optional: Add book description"></textarea>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">📤 Submit for Review</button>
+                    <button type="reset" class="btn btn-secondary">Clear</button>
+                </div>
+            </form>
+
+            <div id="successMessage" style="display: none;" class="alert alert-success mt-3">
+                ✅ Book submitted successfully! Admin will review it shortly.
+            </div>
+        </div>
+
+        <!-- My Submissions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2>📝 My Submissions</h2>
+            </div>
+            <div id="mySubmissions"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        document.getElementById('submitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const request = {
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                category: document.getElementById('category').value,
+                uniqueCode: document.getElementById('uniqueCode').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/book-verification/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                if (response.ok) {
+                    document.getElementById('submitForm').reset();
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('successMessage').style.display = 'none';
+                    }, 3000);
+                    loadSubmissions();
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.message || 'Failed to submit book'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error submitting book');
+            }
+        });
+
+        async function loadSubmissions() {
+            try {
+                const response = await fetch(`${API_BASE}/book-verification/my-submissions?page=0&size=10`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displaySubmissions(data.content || []);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displaySubmissions(submissions) {
+            const container = document.getElementById('mySubmissions');
+            container.innerHTML = '';
+
+            if (submissions.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No submissions yet</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+            submissions.forEach(submission => {
+                const statusClass = submission.status === 'PENDING' ? 'badge-warning' :
+                                   submission.status === 'APPROVED' ? 'badge-success' : 'badge-danger';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${submission.title}</strong></td>
+                    <td>${submission.author}</td>
+                    <td><span class="badge ${statusClass}">${submission.status}</span></td>
+                    <td>${new Date(submission.submittedAt).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            container.appendChild(table);
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load submissions on page load
+        loadSubmissions();
+    </script>
+</body>
+</html>

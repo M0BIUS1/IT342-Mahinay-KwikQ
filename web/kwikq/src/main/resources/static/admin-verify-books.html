@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Verification - Admin</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        .verification-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .book-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-item label {
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-item p {
+            color: #6b7280;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .reject-form {
+            display: none;
+        }
+
+        .reject-form.show {
+            display: block;
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/admin-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>📚 Book Verification</h2>
+                <p class="text-muted mt-1">Review and approve books submitted by librarians</p>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 1rem;">
+                <button class="tab-btn active" onclick="switchTab('pending')">⏳ Pending</button>
+                <button class="tab-btn" onclick="switchTab('all')">📚 All</button>
+            </div>
+
+            <!-- Pending Books -->
+            <div id="pending" class="tab-content active">
+                <div id="pendingContainer"></div>
+            </div>
+
+            <!-- All Verifications -->
+            <div id="all" class="tab-content">
+                <div id="allContainer"></div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentTab = 'pending';
+        let currentPage = 0;
+        const pageSize = 5;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadBooks(tab = 'pending', page = 0) {
+            const endpoint = tab === 'pending' ? 'pending' : 'all';
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE}/book-verification/${endpoint}?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = response.json();
+                    data.then(result => {
+                        displayBooks(result.content, tab);
+                        updatePagination(result);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error loading books');
+            }
+        }
+
+        function displayBooks(books, tab) {
+            const container = document.getElementById(tab === 'pending' ? 'pendingContainer' : 'allContainer');
+            container.innerHTML = '';
+
+            if (books.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No books found</p>';
+                return;
+            }
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'verification-card';
+                card.innerHTML = `
+                    <div class="flex-between mb-2">
+                        <div>
+                            <h3>${book.title}</h3>
+                            <p class="text-muted">${book.author}</p>
+                        </div>
+                        <span class="status-badge status-${book.status.toLowerCase()}">${book.status}</span>
+                    </div>
+
+                    <div class="book-info">
+                        <div class="info-item">
+                            <label>Category</label>
+                            <p>${book.category}</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Unique Code</label>
+                            <p><code>${book.uniqueCode}</code></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Submitted By</label>
+                            <p>${book.submittedByName} (${book.submittedByEmail})</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Submitted On</label>
+                            <p>${new Date(book.submittedAt).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    ${book.description ? `<div class="mt-2"><strong>Description:</strong> <p>${book.description}</p></div>` : ''}
+
+                    ${book.status === 'PENDING' ? `
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="approveBook(${book.id})">✓ Approve</button>
+                            <button class="btn btn-danger" onclick="toggleRejectForm(${book.id})">✗ Reject</button>
+                        </div>
+                        <div id="reject-form-${book.id}" class="reject-form">
+                            <label>Rejection Reason</label>
+                            <textarea id="reason-${book.id}" rows="3" placeholder="Why are you rejecting this book?"></textarea>
+                            <div style="margin-top: 1rem;">
+                                <button class="btn btn-danger" onclick="rejectBook(${book.id})">Submit Rejection</button>
+                                <button class="btn btn-secondary" onclick="toggleRejectForm(${book.id})">Cancel</button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${book.status === 'REJECTED' ? `
+                        <div class="alert alert-danger">
+                            <strong>Rejection Reason:</strong> ${book.rejectionReason || 'N/A'}
+                        </div>
+                    ` : ''}
+
+                    ${book.verifiedAt ? `
+                        <p class="text-muted text-small">Verified on: ${new Date(book.verifiedAt).toLocaleDateString()}</p>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function approveBook(verificationId) {
+            if (!confirm('Approve this book?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/book-verification/approve/${verificationId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showSuccess('Book approved and added to catalog!');
+                    loadBooks(currentTab, currentPage);
+                } else {
+                    showError('Failed to approve book');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error approving book');
+            }
+        }
+
+        async function rejectBook(verificationId) {
+            const reason = document.getElementById(`reason-${verificationId}`).value;
+            if (!reason) {
+                alert('Please provide a rejection reason');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/book-verification/reject/${verificationId}?reason=${encodeURIComponent(reason)}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }
+                );
+
+                if (response.ok) {
+                    showSuccess('Book rejected');
+                    loadBooks(currentTab, currentPage);
+                } else {
+                    showError('Failed to reject book');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error rejecting book');
+            }
+        }
+
+        function toggleRejectForm(verificationId) {
+            const form = document.getElementById(`reject-form-${verificationId}`);
+            form.classList.toggle('show');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            currentPage = 0;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+
+            loadBooks(tab, 0);
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadBooks(currentTab, currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadBooks(currentTab, currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        function showSuccess(message) {
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        // Load initial data
+        loadBooks('pending', 0);
+    </script>
+</body>
+</html>

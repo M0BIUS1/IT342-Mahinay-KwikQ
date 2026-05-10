@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        <div class="card">
+            <div class="card-header flex-between">
+                <div>
+                    <h2>🔔 Notifications</h2>
+                    <p class="text-muted mt-1">Stay updated with your library activity</p>
+                </div>
+                <button class="btn btn-small" onclick="markAllAsRead()">Mark All Read</button>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 1rem;">
+                <button class="tab-btn active" onclick="switchTab('all')">📬 All</button>
+                <button class="tab-btn" onclick="switchTab('unread')">🆕 Unread</button>
+            </div>
+
+            <!-- All Notifications -->
+            <div id="all" class="tab-content active">
+                <div id="allContainer"></div>
+            </div>
+
+            <!-- Unread Notifications -->
+            <div id="unread" class="tab-content">
+                <div id="unreadContainer"></div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentTab = 'all';
+        let currentPage = 0;
+        const pageSize = 10;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadNotifications(tab = 'all', page = 0) {
+            const endpoint = tab === 'unread' ? 'unread' : 'my-notifications';
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE}/notifications/${endpoint}?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayNotifications(data.content || [], tab);
+                    updatePagination(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading notifications');
+            }
+        }
+
+        function displayNotifications(notifications, tab) {
+            const container = document.getElementById(tab === 'all' ? 'allContainer' : 'unreadContainer');
+            container.innerHTML = '';
+
+            if (notifications.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No notifications</p>';
+                return;
+            }
+
+            notifications.forEach(notif => {
+                const card = document.createElement('div');
+                card.className = 'card mb-2';
+                card.style.cssText = notif.isRead ? 'opacity: 0.8;' : 'border-left: 4px solid var(--primary-color);';
+                
+                card.innerHTML = `
+                    <div class="flex-between">
+                        <div>
+                            <h4>${notif.title}</h4>
+                            <p>${notif.message}</p>
+                            <small class="text-muted">${new Date(notif.createdAt).toLocaleDateString()} - ${notif.type}</small>
+                        </div>
+                        ${!notif.isRead ? `<button class="btn btn-small" onclick="markAsRead(${notif.id})">✓ Mark Read</button>` : '<span class="badge">Read</span>'}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                const response = await fetch(`${API_BASE}/notifications/read/${notificationId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    loadNotifications(currentTab, currentPage);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function markAllAsRead() {
+            // Simple approach - mark visible notifications as read
+            const response = await fetch(`${API_BASE}/notifications/unread?page=0&size=100`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await response.json();
+            
+            for (let notif of data.content || []) {
+                await markAsRead(notif.id);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            currentPage = 0;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+
+            loadNotifications(tab, 0);
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadNotifications(currentTab, currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadNotifications(currentTab, currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load initial data
+        loadNotifications('all', 0);
+    </script>
+</body>
+</html>
