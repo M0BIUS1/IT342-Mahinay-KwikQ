@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KwikQ - Student Dashboard</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/modern-style.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -37,21 +37,23 @@
             </section>
 
             <section class="welcome-card">
-                <h3>What You Can Do</h3>
-                <p class="lead">Use this dashboard to monitor your requests and receive librarian updates in one place.</p>
-                <div class="quick-metrics">
-                    <div class="metric">
-                        <div class="k">Request Status</div>
-                        <div class="v">Track</div>
-                    </div>
-                    <div class="metric">
-                        <div class="k">Notifications</div>
-                        <div class="v">Review</div>
-                    </div>
-                    <div class="metric">
-                        <div class="k">Support</div>
-                        <div class="v">Reach Staff</div>
-                    </div>
+                <h3>📚 Essential Features</h3>
+                <p class="lead">Access your books, wishlists, and reading statistics.</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <a href="/my-books.html" class="btn btn-primary" style="text-decoration: none; text-align: center;">📖 My Books</a>
+                    <a href="/wishlist.html" class="btn btn-secondary" style="text-decoration: none; text-align: center;">📌 Wishlist</a>
+                    <a href="/reading-stats.html" class="btn btn-success" style="text-decoration: none; text-align: center;">📊 Statistics</a>
+                    <a href="/queue-management.html" class="btn btn-warning" style="text-decoration: none; text-align: center;">📋 Queue</a>
+                </div>
+            </section>
+
+            <section class="welcome-card">
+                <h3>More Features</h3>
+                <p class="lead">Use these tools to enhance your experience.</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <a href="/search.html" class="btn btn-outline" style="text-decoration: none; text-align: center;">🔍 Search Books</a>
+                    <a href="/notifications.html" class="btn btn-outline" style="text-decoration: none; text-align: center;">🔔 Notifications</a>
+                    <a href="/borrowing-history.html" class="btn btn-outline" style="text-decoration: none; text-align: center;">📋 History</a>
                 </div>
             </section>
         </main>

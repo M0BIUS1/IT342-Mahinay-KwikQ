@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - Admin</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/admin-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>📊 Reports & Analytics</h2>
+                <p class="text-muted mt-1">Library statistics and insights</p>
+            </div>
+        </div>
+
+        <!-- Report Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div class="card">
+                <h3>📚 Most Borrowed Books</h3>
+                <div id="topBooks"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('books')">View Details</button>
+            </div>
+
+            <div class="card">
+                <h3>👥 User Engagement</h3>
+                <div id="userStats"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('users')">View Details</button>
+            </div>
+
+            <div class="card">
+                <h3>💰 Fine Revenue</h3>
+                <div id="fineStats"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('fines')">View Details</button>
+            </div>
+
+            <div class="card">
+                <h3>📅 Overdue Analysis</h3>
+                <div id="overdueStats"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('overdue')">View Details</button>
+            </div>
+
+            <div class="card">
+                <h3>📤 Book Submissions</h3>
+                <div id="submissionStats"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('submissions')">View Details</button>
+            </div>
+
+            <div class="card">
+                <h3>⏳ Queue Statistics</h3>
+                <div id="queueStats"></div>
+                <button class="btn btn-small mt-2" onclick="viewReport('queues')">View Details</button>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="card mt-3">
+            <h3>📥 Export Reports</h3>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="exportReport('csv')">📊 Export as CSV</button>
+                <button class="btn btn-secondary" onclick="exportReport('pdf')">📄 Export as PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadReports() {
+            try {
+                // Load placeholder data for now
+                document.getElementById('topBooks').innerHTML = `
+                    <p>📖 Top 5 Most Borrowed</p>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Data Structures (42 borrows)</li>
+                        <li>Web Development (38 borrows)</li>
+                        <li>Database Design (35 borrows)</li>
+                    </ul>
+                `;
+
+                document.getElementById('userStats').innerHTML = `
+                    <p>Active Users: <strong>120</strong></p>
+                    <p>Avg Borrows/User: <strong>3.2</strong></p>
+                    <p>Active Rate: <strong>78%</strong></p>
+                `;
+
+                document.getElementById('fineStats').innerHTML = `
+                    <p>Total Fines: <strong>$2,450</strong></p>
+                    <p>Pending: <strong>$890</strong></p>
+                    <p>This Month: <strong>$145</strong></p>
+                `;
+
+                document.getElementById('overdueStats').innerHTML = `
+                    <p>Current Overdue: <strong>12</strong></p>
+                    <p>Avg Days Late: <strong>4.5</strong></p>
+                    <p>Blocked Users: <strong>8</strong></p>
+                `;
+
+                document.getElementById('submissionStats').innerHTML = `
+                    <p>Pending Review: <strong>5</strong></p>
+                    <p>Approved: <strong>127</strong></p>
+                    <p>Rejected: <strong>3</strong></p>
+                `;
+
+                document.getElementById('queueStats').innerHTML = `
+                    <p>Active Queues: <strong>23</strong></p>
+                    <p>Users Waiting: <strong>45</strong></p>
+                    <p>Avg Wait: <strong>8 days</strong></p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function viewReport(type) {
+            alert(`📊 ${type.toUpperCase()} Report - Full details coming soon!`);
+        }
+
+        function exportReport(format) {
+            alert(`📥 Exporting as ${format.toUpperCase()}...\n(Integration coming soon)`);
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load reports on page load
+        loadReports();
+    </script>
+</body>
+</html>

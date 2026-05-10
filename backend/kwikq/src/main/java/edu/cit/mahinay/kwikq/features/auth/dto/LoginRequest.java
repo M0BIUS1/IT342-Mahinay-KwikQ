@@ -1,15 +1,15 @@
-package edu.cit.mahinay.kwikq.dto;
+package edu.cit.mahinay.kwikq.features.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
+    @NotBlank
+    @Email
     private String email;
 
-    @NotBlank(message = "Password is required")
+    @NotBlank
     private String password;
 
     public LoginRequest() {}

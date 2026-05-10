@@ -1,13 +1,14 @@
-package edu.cit.mahinay.kwikq.dto;
+package edu.cit.mahinay.kwikq.features.auth.dto;
 
 public class AuthResponse {
 
     private String token;
-    private String type = "Bearer";
     private Long id;
     private String name;
     private String email;
     private String role;
+
+    public AuthResponse() {}
 
     public AuthResponse(String token, Long id, String name, String email, String role) {
         this.token = token;
@@ -23,14 +24,6 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Long getId() {

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - Admin</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/admin-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Audit Logs</h2>
+                <p class="text-muted mt-1">Track all admin actions and system events</p>
+            </div>
+
+            <div id="logsContainer"></div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentPage = 0;
+        const pageSize = 20;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadLogs(page = 0) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/audit/logs?page=${page}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayLogs(data.content || []);
+                    updatePagination(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayLogs(logs) {
+            const container = document.getElementById('logsContainer');
+            container.innerHTML = '';
+
+            if (logs.length === 0) {
+                container.innerHTML = '<p class="text-muted">No audit logs found</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Admin</th>
+                        <th>Action</th>
+                        <th>Entity Type</th>
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${log.adminName}</td>
+                    <td><strong>${log.action}</strong></td>
+                    <td>${log.entityType}</td>
+                    <td>${log.details}</td>
+                    <td><small>${new Date(log.createdAt).toLocaleDateString()} ${new Date(log.createdAt).toLocaleTimeString()}</small></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            container.appendChild(table);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadLogs(currentPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadLogs(currentPage);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load initial data
+        loadLogs(0);
+    </script>
+</body>
+</html>

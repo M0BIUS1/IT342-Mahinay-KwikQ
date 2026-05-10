@@ -1,0 +1,8 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.project.sourcePaths": [
+        "backend/kwikq/src/main/java",
+        "backend/kwikq/src/test/java"
+    ]
+}

@@ -11,9 +11,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.kwikq.network.ApiErrorParser
-import com.example.kwikq.network.RegisterRequest
 import com.example.kwikq.network.RetrofitClient
+import com.example.kwikq.repository.UserRepository
 import com.example.kwikq.session.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +29,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var tvGoToLogin: TextView
     private lateinit var sessionManager: SessionManager
+    private lateinit var userRepository: UserRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +44,7 @@ class RegisterActivity : AppCompatActivity() {
         tvStatus = findViewById(R.id.tvStatus)
         tvGoToLogin = findViewById(R.id.tvGoToLogin)
         sessionManager = SessionManager(this)
+        userRepository = UserRepository(this, RetrofitClient.authApiService)
 
         btnRegister.setOnClickListener {
             submitRegistration()
@@ -76,13 +77,13 @@ class RegisterActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.authApiService.register(RegisterRequest(name, email, password)).execute()
+                val result = withContext(Dispatchers.IO) {
+                    userRepository.registerUser(name, email, password)
                 }
 
-                if (response.isSuccessful && response.body() != null) {
-                    val auth = response.body()!!
-                    sessionManager.saveAuthSession(auth.token, auth.name, auth.email, auth.role)
+                if (result.isSuccess) {
+                    val auth = result.getOrNull()!!
+                    sessionManager.saveAuthSession(auth.token, auth.id, auth.name, auth.email, auth.role)
 
                     // Show success confirmation
                     android.widget.Toast.makeText(this@RegisterActivity, "✓ Registration successful! Welcome, ${auth.name}!", android.widget.Toast.LENGTH_LONG).show()
@@ -95,7 +96,7 @@ class RegisterActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    showStatus(ApiErrorParser.getMessage(response), true)
+                    showStatus(result.exceptionOrNull()?.localizedMessage ?: "Registration failed", true)
                 }
             } catch (e: Exception) {
                 showLoading(false)

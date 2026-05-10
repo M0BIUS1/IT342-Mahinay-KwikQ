@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Queue - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        .queue-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .queue-position {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .queue-info {
+            flex-grow: 1;
+        }
+
+        .queue-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .queue-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card p {
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .position-badge {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .empty-state h3 {
+            color: #6b7280;
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .empty-state p {
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>📚 My Book Queue</h2>
+                <p class="text-muted mt-1">Manage books you're waiting for</p>
+            </div>
+        </div>
+
+        <!-- Queue Statistics -->
+        <div class="queue-stats">
+            <div class="stat-card">
+                <p>📋 Total in Queue</p>
+                <h3 id="totalQueue">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>🎯 Position 1 or 2</p>
+                <h3 id="soonAvailable">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>⏳ Further Back</p>
+                <h3 id="furtherBack">0</h3>
+            </div>
+        </div>
+
+        <!-- Queue Items -->
+        <div id="queueContainer"></div>
+
+        <!-- Add to Queue Section -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3>➕ Add Book to Queue</h3>
+            </div>
+            <div class="form-group">
+                <input type="text" id="searchInput" placeholder="Search for a book to add to queue...">
+                <button class="btn btn-primary mt-2" onclick="searchBooks()">Search</button>
+            </div>
+            <div id="searchResultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function loadMyQueues() {
+            try {
+                const response = await fetch(`${API_BASE}/queue/my-queues`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const queues = data.content || [];
+                    
+                    document.getElementById('totalQueue').textContent = queues.length;
+                    
+                    let soonCount = 0;
+                    let furtherCount = 0;
+                    
+                    queues.forEach(q => {
+                        if (q.queuePosition <= 2) soonCount++;
+                        else furtherCount++;
+                    });
+                    
+                    document.getElementById('soonAvailable').textContent = soonCount;
+                    document.getElementById('furtherBack').textContent = furtherCount;
+                    
+                    displayQueues(queues);
+                } else {
+                    document.getElementById('queueContainer').innerHTML = '<p class="text-center text-muted">No queues</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayQueues(queues) {
+            const container = document.getElementById('queueContainer');
+            container.innerHTML = '';
+
+            if (queues.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>😴</p>
+                        <h3>No books in queue</h3>
+                        <p>Add books you want to read from the search below!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            queues.forEach(queue => {
+                const isAvailableSoon = queue.queuePosition <= 2;
+                const card = document.createElement('div');
+                card.className = 'queue-card';
+                
+                let statusIcon = '⏳';
+                let statusText = `Position ${queue.queuePosition}`;
+                let statusColor = '#f59e0b';
+                
+                if (queue.queuePosition === 1) {
+                    statusIcon = '🎯';
+                    statusText = 'Next in line!';
+                    statusColor = '#10b981';
+                } else if (queue.queuePosition === 2) {
+                    statusIcon = '📍';
+                    statusText = '2nd in line';
+                    statusColor = '#3b82f6';
+                }
+
+                card.innerHTML = `
+                    <div class="queue-row">
+                        <div class="queue-position" style="background: ${statusColor};">
+                            ${statusIcon}
+                        </div>
+                        <div class="queue-info">
+                            <h3>${queue.bookTitle}</h3>
+                            <p class="text-muted">${queue.bookAuthor}</p>
+                            <p><small class="position-badge">${statusText}</small></p>
+                            <p class="text-muted"><small>Added: ${new Date(queue.queuedAt).toLocaleDateString()}</small></p>
+                            ${queue.status ? `<p><small style="color: #6b7280;">Status: ${queue.status}</small></p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        ${isAvailableSoon ? '<button class="btn btn-success btn-small" disabled>📬 Notify Me</button>' : ''}
+                        <button class="btn btn-danger btn-small" onclick="removeFromQueue(${queue.id})">❌ Cancel</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function searchBooks() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Please enter a book title or author');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/search/books?query=${encodeURIComponent(query)}&page=0&size=5`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displaySearchResults(data.content || []);
+                } else {
+                    document.getElementById('searchResultsContainer').innerHTML = '<p class="text-muted">No books found</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displaySearchResults(books) {
+            const container = document.getElementById('searchResultsContainer');
+            container.innerHTML = '';
+
+            if (books.length === 0) {
+                container.innerHTML = '<p class="text-muted">No books found</p>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;';
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h4>${book.title}</h4>
+                    <p class="text-muted"><small>${book.author}</small></p>
+                    <p><small>${book.category}</small></p>
+                    <button class="btn btn-primary btn-small" onclick="addToQueue(${book.id})">➕ Add to Queue</button>
+                `;
+                grid.appendChild(card);
+            });
+
+            container.appendChild(grid);
+        }
+
+        async function addToQueue(bookId) {
+            try {
+                const response = await fetch(`${API_BASE}/queue/add/${bookId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Added to queue!');
+                    document.getElementById('searchInput').value = '';
+                    document.getElementById('searchResultsContainer').innerHTML = '';
+                    loadMyQueues();
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.message || 'Error adding to queue'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error adding to queue');
+            }
+        }
+
+        async function removeFromQueue(queueId) {
+            if (!confirm('Remove from queue?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/queue/${queueId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Removed from queue');
+                    loadMyQueues();
+                } else {
+                    alert('❌ Error removing from queue');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Load on page load
+        loadMyQueues();
+        
+        // Refresh every 30 seconds
+        setInterval(loadMyQueues, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Books - KwikQ</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+</head>
+<body>
+    <nav>
+        <a href="/student-dashboard.html">← Dashboard</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>🔍 Search Books</h2>
+                <p class="text-muted mt-1">Find books in our library catalog</p>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="searchInput" placeholder="Search by title, author, or category..." style="padding: 0.75rem; font-size: 1rem;">
+                <button class="btn btn-primary mt-2" onclick="searchBooks()">Search</button>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div id="resultsContainer"></div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-between mt-3" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousPage()" id="prevBtn">← Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('jwtToken');
+        let currentPage = 0;
+        const pageSize = 10;
+
+        if (!authToken) {
+            window.location.href = '/register.html';
+        }
+
+        async function searchBooks() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Please enter a search term');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/search/books?query=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`,
+                    { headers: { 'Authorization': `Bearer ${authToken}` } }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResults(data.content || []);
+                    updatePagination(data);
+                } else {
+                    document.getElementById('resultsContainer').innerHTML = '<p class="text-muted">No books found</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error searching books');
+            }
+        }
+
+        function displayResults(books) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            if (books.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No books found</p>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;';
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cssText = 'cursor: pointer; transition: all 0.3s;';
+                card.onmouseover = () => card.style.transform = 'translateY(-5px)';
+                card.onmouseout = () => card.style.transform = 'none';
+                
+                card.innerHTML = `
+                    <h3>${book.title}</h3>
+                    <p class="text-muted">${book.author}</p>
+                    <p><small>${book.category}</small></p>
+                    <p><code>${book.uniqueCode}</code></p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-small" onclick="viewBook(${book.id})">View Details</button>
+                        <button class="btn btn-secondary btn-small" onclick="addToWishlist(${book.id})">❤️ Wishlist</button>
+                        <button class="btn btn-outline btn-small" onclick="addToQueue(${book.id})">📋 Queue</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            container.appendChild(grid);
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages > 1) {
+                pagination.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${data.totalPages}`;
+                document.getElementById('prevBtn').disabled = data.first;
+                document.getElementById('nextBtn').disabled = data.last;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            searchBooks();
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                searchBooks();
+            }
+        }
+
+        function viewBook(bookId) {
+            alert('Detailed book view - coming soon!');
+        }
+
+        async function addToWishlist(bookId) {
+            try {
+                const response = await fetch(`${API_BASE}/wishlist/add/${bookId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Added to wishlist!');
+                } else {
+                    alert('❌ Already in wishlist or error adding');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error adding to wishlist');
+            }
+        }
+
+        async function addToQueue(bookId) {
+            try {
+                const response = await fetch(`${API_BASE}/queue/add/${bookId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✅ Added to queue!');
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.message || 'Error adding to queue'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error adding to queue');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/register.html';
+        }
+
+        // Allow Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBooks();
+        });
+    </script>
+</body>
+</html>

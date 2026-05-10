@@ -1,8 +1,8 @@
-package edu.cit.mahinay.kwikq.service;
+package edu.cit.mahinay.kwikq.features.auth.service;
 
-import edu.cit.mahinay.kwikq.dto.LoginRequest;
-import edu.cit.mahinay.kwikq.dto.RegisterRequest;
-import edu.cit.mahinay.kwikq.dto.AuthResponse;
+import edu.cit.mahinay.kwikq.features.auth.dto.LoginRequest;
+import edu.cit.mahinay.kwikq.features.auth.dto.RegisterRequest;
+import edu.cit.mahinay.kwikq.features.auth.dto.AuthResponse;
 import edu.cit.mahinay.kwikq.entity.User;
 import edu.cit.mahinay.kwikq.repository.UserRepository;
 import edu.cit.mahinay.kwikq.security.JwtUtils;
@@ -31,19 +31,11 @@ public class UserService {
     @Autowired
     private JwtUtils jwtUtils;
 
-    /**
-     * Register a new user.
-     * - Validates required fields (handled by DTO validation)
-     * - Prevents duplicate email registration
-     * - Stores password securely (BCrypt hashed)
-     */
     public AuthResponse register(RegisterRequest request) {
-        // Check for duplicate email
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email is already registered");
         }
 
-        // Create new user with hashed password
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -52,7 +44,6 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // Generate JWT token
         String token = jwtUtils.generateTokenFromEmail(savedUser.getEmail());
 
         return new AuthResponse(
@@ -64,12 +55,6 @@ public class UserService {
         );
     }
 
-    /**
-     * Authenticate a user.
-     * - Validates credentials against the database
-     * - Prevents login with invalid credentials
-     * - Returns JWT token on success
-     */
     public AuthResponse login(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
