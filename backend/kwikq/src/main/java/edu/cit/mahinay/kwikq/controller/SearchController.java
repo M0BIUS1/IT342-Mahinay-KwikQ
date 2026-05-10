@@ -1,7 +1,7 @@
 package edu.cit.mahinay.kwikq.controller;
 
 import edu.cit.mahinay.kwikq.dto.BookResponse;
-import edu.cit.mahinay.kwikq.repository.BookRepository;
+import edu.cit.mahinay.kwikq.features.books.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

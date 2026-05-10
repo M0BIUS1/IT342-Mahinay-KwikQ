@@ -1,6 +1,6 @@
 package edu.cit.mahinay.kwikq.repository;
 
-import edu.cit.mahinay.kwikq.entity.SystemConfig;
+import edu.cit.mahinay.kwikq.features.systemconfig.entity.SystemConfig;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

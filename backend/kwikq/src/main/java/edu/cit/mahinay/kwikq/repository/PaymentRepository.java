@@ -1,7 +1,7 @@
 package edu.cit.mahinay.kwikq.repository;
 
-import edu.cit.mahinay.kwikq.entity.Payment;
-import edu.cit.mahinay.kwikq.entity.User;
+import edu.cit.mahinay.kwikq.features.payments.entity.Payment;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

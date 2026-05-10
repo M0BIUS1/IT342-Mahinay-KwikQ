@@ -1,7 +1,7 @@
 package edu.cit.mahinay.kwikq.controller;
 
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
-import edu.cit.mahinay.kwikq.entity.SystemConfig;
+import edu.cit.mahinay.kwikq.features.systemconfig.entity.SystemConfig;
 import edu.cit.mahinay.kwikq.service.SystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

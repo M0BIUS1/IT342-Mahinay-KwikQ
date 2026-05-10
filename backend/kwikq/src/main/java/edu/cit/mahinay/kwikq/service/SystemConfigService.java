@@ -1,7 +1,7 @@
 package edu.cit.mahinay.kwikq.service;
 
-import edu.cit.mahinay.kwikq.entity.SystemConfig;
-import edu.cit.mahinay.kwikq.repository.SystemConfigRepository;
+import edu.cit.mahinay.kwikq.features.systemconfig.entity.SystemConfig;
+import edu.cit.mahinay.kwikq.features.systemconfig.repository.SystemConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

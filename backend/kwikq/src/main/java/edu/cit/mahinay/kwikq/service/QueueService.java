@@ -1,11 +1,11 @@
 package edu.cit.mahinay.kwikq.service;
 
 import edu.cit.mahinay.kwikq.dto.QueueResponse;
-import edu.cit.mahinay.kwikq.entity.Book;
-import edu.cit.mahinay.kwikq.entity.BookQueue;
-import edu.cit.mahinay.kwikq.entity.User;
-import edu.cit.mahinay.kwikq.repository.BookQueueRepository;
-import edu.cit.mahinay.kwikq.repository.BookRepository;
+import edu.cit.mahinay.kwikq.features.books.entity.Book;
+import edu.cit.mahinay.kwikq.features.queue.entity.BookQueue;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.queue.repository.BookQueueRepository;
+import edu.cit.mahinay.kwikq.features.books.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

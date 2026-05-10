@@ -1,8 +1,8 @@
 package edu.cit.mahinay.kwikq.service;
 
-import edu.cit.mahinay.kwikq.entity.AuditLog;
-import edu.cit.mahinay.kwikq.entity.User;
-import edu.cit.mahinay.kwikq.repository.AuditLogRepository;
+import edu.cit.mahinay.kwikq.features.audit.entity.AuditLog;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.audit.repository.AuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,9 +1,9 @@
 package edu.cit.mahinay.kwikq.service;
 
-import edu.cit.mahinay.kwikq.entity.Review;
-import edu.cit.mahinay.kwikq.entity.Book;
-import edu.cit.mahinay.kwikq.entity.User;
-import edu.cit.mahinay.kwikq.repository.ReviewRepository;
+import edu.cit.mahinay.kwikq.features.reviews.entity.Review;
+import edu.cit.mahinay.kwikq.features.books.entity.Book;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.reviews.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

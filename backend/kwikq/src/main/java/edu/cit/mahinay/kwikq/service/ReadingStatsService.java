@@ -1,8 +1,8 @@
 package edu.cit.mahinay.kwikq.service;
 
-import edu.cit.mahinay.kwikq.entity.Borrowing;
-import edu.cit.mahinay.kwikq.entity.User;
-import edu.cit.mahinay.kwikq.repository.BorrowingRepository;
+import edu.cit.mahinay.kwikq.features.borrowing.entity.Borrowing;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.borrowing.repository.BorrowingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

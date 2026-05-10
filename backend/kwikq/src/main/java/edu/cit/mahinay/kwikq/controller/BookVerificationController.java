@@ -3,7 +3,7 @@ package edu.cit.mahinay.kwikq.controller;
 import edu.cit.mahinay.kwikq.dto.BookVerificationRequest;
 import edu.cit.mahinay.kwikq.dto.BookVerificationResponse;
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
-import edu.cit.mahinay.kwikq.entity.User;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
 import edu.cit.mahinay.kwikq.service.BookVerificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

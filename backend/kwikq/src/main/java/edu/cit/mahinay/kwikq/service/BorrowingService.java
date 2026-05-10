@@ -1,10 +1,13 @@
 package edu.cit.mahinay.kwikq.service;
 
 import edu.cit.mahinay.kwikq.dto.BorrowingResponse;
-import edu.cit.mahinay.kwikq.entity.*;
-import edu.cit.mahinay.kwikq.repository.BookCopyRepository;
-import edu.cit.mahinay.kwikq.repository.BorrowingRepository;
-import edu.cit.mahinay.kwikq.repository.UserProfileRepository;
+import edu.cit.mahinay.kwikq.features.borrowing.entity.Borrowing;
+import edu.cit.mahinay.kwikq.features.books.entity.BookCopy;
+import edu.cit.mahinay.kwikq.features.users.entity.User;
+import edu.cit.mahinay.kwikq.features.users.entity.UserProfile;
+import edu.cit.mahinay.kwikq.features.books.repository.BookCopyRepository;
+import edu.cit.mahinay.kwikq.features.borrowing.repository.BorrowingRepository;
+import edu.cit.mahinay.kwikq.features.users.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

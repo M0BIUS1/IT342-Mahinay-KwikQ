@@ -1,5 +1,6 @@
 package edu.cit.mahinay.kwikq.entity;
 
+import edu.cit.mahinay.kwikq.features.users.entity.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
