@@ -5,7 +5,7 @@ import edu.cit.mahinay.kwikq.features.users.entity.User;
 import edu.cit.mahinay.kwikq.features.books.entity.Book;
 import edu.cit.mahinay.kwikq.features.books.repository.BookRepository;
 import edu.cit.mahinay.kwikq.features.wishlist.repository.WishlistRepository;
-import edu.cit.mahinay.kwikq.service.WishlistService;
+import edu.cit.mahinay.kwikq.features.wishlist.service.WishlistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

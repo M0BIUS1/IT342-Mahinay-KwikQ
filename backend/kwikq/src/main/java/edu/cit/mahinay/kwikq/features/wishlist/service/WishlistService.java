@@ -1,4 +1,4 @@
-package edu.cit.mahinay.kwikq.service;
+package edu.cit.mahinay.kwikq.features.wishlist.service;
 
 import edu.cit.mahinay.kwikq.features.wishlist.entity.Wishlist;
 import edu.cit.mahinay.kwikq.features.users.entity.User;

@@ -9,8 +9,13 @@ public class SystemConfig {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "config_key")
     private String key;
+
+    @Column(name = "config_value")
     private String value;
+
+    @Column(name = "config_description")
     private String description;
 
     public SystemConfig() {}

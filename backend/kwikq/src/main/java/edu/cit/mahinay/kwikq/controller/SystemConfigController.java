@@ -2,7 +2,7 @@ package edu.cit.mahinay.kwikq.controller;
 
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
 import edu.cit.mahinay.kwikq.features.systemconfig.entity.SystemConfig;
-import edu.cit.mahinay.kwikq.service.SystemConfigService;
+import edu.cit.mahinay.kwikq.features.systemconfig.service.SystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -4,7 +4,7 @@ import edu.cit.mahinay.kwikq.dto.NotificationResponse;
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
 import edu.cit.mahinay.kwikq.features.notifications.entity.Notification;
 import edu.cit.mahinay.kwikq.features.users.entity.User;
-import edu.cit.mahinay.kwikq.service.NotificationService;
+import edu.cit.mahinay.kwikq.features.notifications.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

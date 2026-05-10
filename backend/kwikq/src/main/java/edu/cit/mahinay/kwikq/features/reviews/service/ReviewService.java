@@ -1,4 +1,4 @@
-package edu.cit.mahinay.kwikq.service;
+package edu.cit.mahinay.kwikq.features.reviews.service;
 
 import edu.cit.mahinay.kwikq.features.reviews.entity.Review;
 import edu.cit.mahinay.kwikq.features.books.entity.Book;
