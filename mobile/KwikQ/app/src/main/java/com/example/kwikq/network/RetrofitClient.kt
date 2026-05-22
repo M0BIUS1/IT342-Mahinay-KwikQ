@@ -17,6 +17,21 @@ object RetrofitClient {
     val authApiService: AuthApiService
         get() = getRetrofitInstance().create(AuthApiService::class.java)
 
+    val paymentsApiService: PaymentsApiService
+        get() = getRetrofitInstance().create(PaymentsApiService::class.java)
+
+    val queueApiService: QueueApiService
+        get() = getRetrofitInstance().create(QueueApiService::class.java)
+
+    val bookApiService: BookApiService
+        get() = getRetrofitInstance().create(BookApiService::class.java)
+
+    val borrowingApiService: BorrowingApiService
+        get() = getRetrofitInstance().create(BorrowingApiService::class.java)
+
+    val profileApiService: ProfileApiService
+        get() = getRetrofitInstance().create(ProfileApiService::class.java)
+
     private fun getRetrofitInstance(): Retrofit {
         if (retrofit == null) {
             val okHttpClient = OkHttpClient.Builder()
