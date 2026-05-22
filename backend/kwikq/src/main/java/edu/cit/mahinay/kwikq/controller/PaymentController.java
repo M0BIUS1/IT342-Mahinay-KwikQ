@@ -22,7 +22,7 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping("/pay/{paymentId}")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> markAsPaid(@PathVariable Long paymentId) {
         try {
             var response = paymentService.markAsPaid(paymentId);
@@ -33,7 +33,7 @@ public class PaymentController {
     }
 
     @GetMapping("/my-payments")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> getMyPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -49,7 +49,7 @@ public class PaymentController {
     }
 
     @GetMapping("/pending-amount")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> getPendingAmount() {
         try {
             User user = getAuthenticatedUser();
