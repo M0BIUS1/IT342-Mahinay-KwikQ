@@ -384,6 +384,98 @@ tbody tr:hover {
     }
 }
 
+/* Mobile improvements */
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.nav-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+        padding: 0.5rem 1rem;
+        margin-top: 0.5rem;
+        border-radius: 6px;
+    }
+
+    nav.nav-expanded .nav-links {
+        display: flex;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+    }
+
+    /* Make touch targets larger */
+    button, .btn, a {
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* Responsive tables: stack rows into cards */
+    .table-responsive table, .table-responsive thead, .table-responsive tbody, .table-responsive th, .table-responsive td, .table-responsive tr {
+        display: block;
+    }
+
+    .table-responsive thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    .table-responsive tr {
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+    }
+
+    .table-responsive td {
+        padding: 0.5rem 0;
+        border: none;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    .table-responsive td:before {
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 0.5rem;
+        white-space: nowrap;
+        font-weight: 600;
+        color: #374151;
+        content: attr(data-label) ": ";
+    }
+}
+
+/* Utility for small avatars */
+.profile-avatar.small {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+}
+
 /* Utility classes */
 .mt-1 { margin-top: 0.5rem; }
 .mt-2 { margin-top: 1rem; }
