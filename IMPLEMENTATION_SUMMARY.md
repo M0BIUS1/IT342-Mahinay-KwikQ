@@ -133,9 +133,9 @@
 - `GET /api/dashboard/student` - Student dashboard (student only)
 
 #### Payments
-- `POST /api/payments/pay/{paymentId}` - Mark a payment as paid (student/admin)
-- `GET /api/payments/my-payments` - Get user's payments (student/admin)
-- `GET /api/payments/pending-amount` - Get user's pending amount (student/admin)
+- `POST /api/payments/pay/{paymentId}` - Mark a payment as paid (student only)
+- `GET /api/payments/my-payments` - Get user's payments (student only)
+- `GET /api/payments/pending-amount` - Get user's pending amount (student only)
 
 ## 🔑 Key Features
 
