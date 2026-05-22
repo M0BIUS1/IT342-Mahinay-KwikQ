@@ -4,7 +4,7 @@ import edu.cit.mahinay.kwikq.dto.BookVerificationRequest;
 import edu.cit.mahinay.kwikq.dto.BookVerificationResponse;
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
 import edu.cit.mahinay.kwikq.features.users.entity.User;
-import edu.cit.mahinay.kwikq.service.BookVerificationService;
+import edu.cit.mahinay.kwikq.features.verification.service.BookVerificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class BookVerificationController {
     private BookVerificationService bookVerificationService;
 
     @PostMapping("/submit")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> submitBook(@Valid @RequestBody BookVerificationRequest request) {
         try {
             User user = getAuthenticatedUser();
@@ -91,14 +91,14 @@ public class BookVerificationController {
     }
 
     @GetMapping("/my-submissions")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getMySubmissions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
             User user = getAuthenticatedUser();
             Pageable pageable = PageRequest.of(page, size);
-            Page<BookVerificationResponse> result = bookVerificationService.getLibrarianSubmissions(user, pageable);
+            Page<BookVerificationResponse> result = bookVerificationService.getUserSubmissions(user, pageable);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/profile")
-@PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+@PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
 public class UserProfileController {
 
     @Autowired

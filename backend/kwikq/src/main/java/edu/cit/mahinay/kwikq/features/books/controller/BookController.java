@@ -17,14 +17,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
-@PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
+@PreAuthorize("hasRole('ADMIN')")
 public class BookController {
 
     @Autowired
     private BookService bookService;
 
-    @GetMapping
-    public PagedResponse<Book> getBooks(
+            @GetMapping
+            public PagedResponse<Book> getBooks(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "") String category,
             @RequestParam(defaultValue = "0") int page,
@@ -49,6 +49,7 @@ public class BookController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createBook(@Valid @RequestBody BookRequest request) {
         try {
             Book created = bookService.createBook(request);
@@ -59,6 +60,7 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateBook(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         try {
             Book updated = bookService.updateBook(id, request);
@@ -70,6 +72,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteBook(@PathVariable Long id) {
         try {
             bookService.deleteBook(id);

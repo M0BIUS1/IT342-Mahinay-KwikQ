@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KwikQ - Queue Management</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .queue-controls { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem; }
+        .queue-table td, .queue-table th { padding:0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo"><h1>Kwik<span>Q</span></h1></div>
+            <button class="btn btn-secondary" onclick="logout()">Log out</button>
+        </header>
+
+        <main class="dashboard-content">
+            <section class="welcome-card">
+                <h2>Queue Management</h2>
+                <p class="lead">Admins can view and manage borrow queues across the system.</p>
+            </section>
+
+            <section class="welcome-card">
+                <div class="queue-controls">
+                    <input id="adminQueueSearch" type="text" placeholder="Search book title or code">
+                    <button id="adminQueueSearchBtn" class="btn btn-primary">Search</button>
+                    <select id="adminQueueFilter">
+                        <option value="">All books</option>
+                    </select>
+                </div>
+
+                <div class="book-table-wrap">
+                    <table class="book-table queue-table">
+                        <thead>
+                            <tr><th>Book</th><th>Queue Size</th><th>View</th></tr>
+                        </thead>
+                        <tbody id="adminQueueBooksBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="adminBookQueuePanel" style="display:none; margin-top:1rem;">
+                    <h4 id="adminQueueForBookTitle"></h4>
+                    <table class="book-table queue-table">
+                        <thead><tr><th>Pos</th><th>User</th><th>Requested At</th><th>Actions</th></tr></thead>
+                        <tbody id="adminBookQueueBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin-queue.js"></script>
+    <script>
+        const auth = getAuth();
+        if (!auth) { window.location.href = '/index.html'; }
+        else {
+            if ((auth.role || '').toUpperCase() !== 'ADMIN') { redirectToDashboard(auth); }
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof initAdminQueue === 'function') initAdminQueue();
+            });
+        }
+    </script>
+</body>
+</html>

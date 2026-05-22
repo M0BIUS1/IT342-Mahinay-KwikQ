@@ -110,9 +110,9 @@
 - `GET /api/books` - Search/browse books (paginated)
 - `GET /api/books/categories` - Get book categories
 - `GET /api/books/{id}` - Get book details
-- `POST /api/books` - Create book (admin/librarian)
-- `PUT /api/books/{id}` - Update book (admin/librarian)
-- `DELETE /api/books/{id}` - Delete book (admin/librarian)
+- `POST /api/books` - Create book (admin)
+- `PUT /api/books/{id}` - Update book (admin)
+- `DELETE /api/books/{id}` - Delete book (admin)
 
 #### Borrowing
 - `POST /api/borrowings/borrow/{bookCopyId}` - Borrow book
@@ -129,8 +129,13 @@
 
 #### Dashboard
 - `GET /api/dashboard/admin` - Admin dashboard (admin only)
-- `GET /api/dashboard/librarian` - Librarian dashboard (librarian only)
+- `GET /api/dashboard/librarian` - Admin-accessible endpoint (kept for compatibility)
 - `GET /api/dashboard/student` - Student dashboard (student only)
+
+#### Payments
+- `POST /api/payments/pay/{paymentId}` - Mark a payment as paid (student/admin)
+- `GET /api/payments/my-payments` - Get user's payments (student/admin)
+- `GET /api/payments/pending-amount` - Get user's pending amount (student/admin)
 
 ## 🔑 Key Features
 
@@ -154,7 +159,7 @@
 - Account status management
 
 ### Security & Validation
-- Role-based access control (Admin, Librarian, Student)
+- Role-based access control (Admin, Student)
 - JWT token authentication
 - Form validation on both client and server
 - Authorization checks on all endpoints

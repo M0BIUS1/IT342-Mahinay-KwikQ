@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/borrowings")
-@PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+@PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
 public class BorrowingController {
 
     @Autowired

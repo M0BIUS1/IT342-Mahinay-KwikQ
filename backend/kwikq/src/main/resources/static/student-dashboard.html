@@ -38,7 +38,7 @@
 
             <section class="welcome-card">
                 <h3>What You Can Do</h3>
-                <p class="lead">Use this dashboard to monitor your requests and receive librarian updates in one place.</p>
+                <p class="lead">Use this dashboard to monitor your requests and receive updates in one place.</p>
                 <div class="quick-metrics">
                     <div class="metric">
                         <div class="k">Request Status</div>
@@ -54,10 +54,34 @@
                     </div>
                 </div>
             </section>
+
+            <section class="welcome-card">
+                <h3>Search & Borrow</h3>
+                <p class="lead">Search for books and add them to your borrow queue.</p>
+                <div class="search-row">
+                    <input id="studentSearchInput" type="text" placeholder="Search title, author, or code">
+                    <button id="studentSearchBtn" class="btn btn-primary" type="button">Search</button>
+                </div>
+                <div id="searchResultsWrap" class="book-table-wrap" style="margin-top:0.5rem;">
+                    <table class="book-table">
+                        <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Actions</th></tr></thead>
+                        <tbody id="searchResultsBody"></tbody>
+                    </table>
+                </div>
+
+                <h4 style="margin-top:1rem;">My Queues</h4>
+                <div id="myQueuesWrap" class="book-table-wrap">
+                    <table class="book-table">
+                        <thead><tr><th>Book</th><th>Position</th><th>Requested At</th><th>Actions</th></tr></thead>
+                        <tbody id="myQueuesBody"></tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
     <script src="/js/auth.js"></script>
+    <script src="/js/student-dashboard.js"></script>
     <script>
         const auth = getAuth();
         if (!auth) {
@@ -75,6 +99,10 @@
                 .catch(err => {
                     document.getElementById('roleMessage').textContent = err.message;
                 });
+            // initialize student dashboard interactive parts
+            if (typeof initStudentDashboard === 'function') {
+                initStudentDashboard();
+            }
         }
     </script>
 </body>

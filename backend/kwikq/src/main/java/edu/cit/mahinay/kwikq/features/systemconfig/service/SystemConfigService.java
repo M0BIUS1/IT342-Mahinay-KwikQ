@@ -14,14 +14,14 @@ public class SystemConfigService {
     private SystemConfigRepository configRepository;
 
     public String getConfig(String key, String defaultValue) {
-        return configRepository.findByKey(key)
+        return configRepository.findByConfigKey(key)
                 .map(SystemConfig::getValue)
                 .orElse(defaultValue);
     }
 
     public SystemConfig setConfig(String key, String value, String description) {
-        SystemConfig config = configRepository.findByKey(key)
-                .orElse(new SystemConfig(key, value, description));
+        SystemConfig config = configRepository.findByConfigKey(key)
+            .orElse(new SystemConfig(key, value, description));
         config.setValue(value);
         config.setDescription(description);
         return configRepository.save(config);

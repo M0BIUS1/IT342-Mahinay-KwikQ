@@ -2,7 +2,7 @@ package edu.cit.mahinay.kwikq.controller;
 
 import edu.cit.mahinay.kwikq.dto.AuditLogResponse;
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
-import edu.cit.mahinay.kwikq.service.AuditLogService;
+import edu.cit.mahinay.kwikq.features.audit.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

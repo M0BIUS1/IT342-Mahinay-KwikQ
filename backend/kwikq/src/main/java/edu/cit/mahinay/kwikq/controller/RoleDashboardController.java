@@ -17,9 +17,14 @@ public class RoleDashboardController {
     }
 
     @GetMapping("/librarian")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Deprecated
+    /**
+     * Deprecated alias for `/admin` kept for backward compatibility.
+     * Delegates to `adminDashboard()` which enforces the same security.
+     */
     public MessageResponse librarianDashboard() {
-        return new MessageResponse("Librarian dashboard access granted");
+        return adminDashboard();
     }
 
     @GetMapping("/student")

@@ -31,22 +31,9 @@ class RoleDashboardAuthorizationTests {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void adminCanAccessAdminEndpointOnly() throws Exception {
+    void adminCanAccessAdminAndLibrarianEndpoints() throws Exception {
         mockMvc.perform(get("/api/dashboard/admin"))
                 .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/dashboard/librarian"))
-                .andExpect(status().isForbidden());
-
-        mockMvc.perform(get("/api/dashboard/student"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = "LIBRARIAN")
-    void librarianCanAccessLibrarianEndpointOnly() throws Exception {
-        mockMvc.perform(get("/api/dashboard/admin"))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(get("/api/dashboard/librarian"))
                 .andExpect(status().isOk());

@@ -85,6 +85,18 @@
                     </table>
                 </div>
 
+                <div id="queuePanel" class="book-queue-panel" style="margin-top:1rem; display:none;">
+                    <h4>Queue for selected book</h4>
+                    <p id="queueBookTitle" class="lead"></p>
+                    <div id="queueListWrap">
+                        <table class="book-table">
+                            <thead>
+                                <tr><th>Position</th><th>User</th><th>Requested At</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="queueListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="book-pagination">
                     <button id="booksPrevBtn" type="button" class="btn btn-secondary">Previous</button>
                     <span id="booksPageInfo"></span>

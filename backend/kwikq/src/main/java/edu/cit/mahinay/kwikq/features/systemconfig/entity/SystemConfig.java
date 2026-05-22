@@ -8,15 +8,17 @@ public class SystemConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String key;
+    
+    @Column(name = "config_key")
+    private String configKey;
+    @Column(name = "config_value")
     private String value;
     private String description;
 
     public SystemConfig() {}
 
-    public SystemConfig(String key, String value, String description) {
-        this.key = key;
+    public SystemConfig(String configKey, String value, String description) {
+        this.configKey = configKey;
         this.value = value;
         this.description = description;
     }
@@ -25,8 +27,8 @@ public class SystemConfig {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getKey() { return key; }
-    public void setKey(String key) { this.key = key; }
+    public String getConfigKey() { return configKey; }
+    public void setConfigKey(String configKey) { this.configKey = configKey; }
 
     public String getValue() { return value; }
     public void setValue(String value) { this.value = value; }

@@ -29,7 +29,7 @@ public class BookVerificationService {
     private AuditLogService auditLogService;
 
     @Transactional
-    public BookVerificationResponse submitBook(User librarian, BookVerificationRequest request) {
+    public BookVerificationResponse submitBook(User user, BookVerificationRequest request) {
         // Check if unique code already exists
         if (bookVerificationRepository.findByUniqueCode(request.getUniqueCode()).isPresent()) {
             throw new RuntimeException("Book with this unique code already exists");
@@ -41,7 +41,7 @@ public class BookVerificationService {
                 request.getAuthor(),
                 request.getCategory(),
                 request.getUniqueCode(),
-                librarian
+                user
         );
         verification.setDescription(request.getDescription());
 
@@ -111,8 +111,8 @@ public class BookVerificationService {
         return bookVerificationRepository.findAll(pageable).map(this::mapToResponse);
     }
 
-    public Page<BookVerificationResponse> getLibrarianSubmissions(User librarian, Pageable pageable) {
-        return bookVerificationRepository.findBySubmittedBy(librarian, pageable).map(this::mapToResponse);
+    public Page<BookVerificationResponse> getUserSubmissions(User user, Pageable pageable) {
+        return bookVerificationRepository.findBySubmittedBy(user, pageable).map(this::mapToResponse);
     }
 
     public Long getPendingCount() {

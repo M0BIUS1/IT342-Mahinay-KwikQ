@@ -4,7 +4,7 @@ import edu.cit.mahinay.kwikq.dto.NotificationResponse;
 import edu.cit.mahinay.kwikq.dto.MessageResponse;
 import edu.cit.mahinay.kwikq.features.notifications.entity.Notification;
 import edu.cit.mahinay.kwikq.features.users.entity.User;
-import edu.cit.mahinay.kwikq.service.NotificationService;
+import edu.cit.mahinay.kwikq.features.notifications.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +22,7 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @GetMapping("/my-notifications")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     public ResponseEntity<?> getMyNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -38,7 +38,7 @@ public class NotificationController {
     }
 
     @GetMapping("/unread")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     public ResponseEntity<?> getUnreadNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -54,7 +54,7 @@ public class NotificationController {
     }
 
     @GetMapping("/unread-count")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     public ResponseEntity<?> getUnreadCount() {
         try {
             User user = getAuthenticatedUser();
@@ -66,7 +66,7 @@ public class NotificationController {
     }
 
     @PostMapping("/read/{notificationId}")
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     public ResponseEntity<?> markAsRead(@PathVariable Long notificationId) {
         try {
             Notification response = notificationService.markAsRead(notificationId);

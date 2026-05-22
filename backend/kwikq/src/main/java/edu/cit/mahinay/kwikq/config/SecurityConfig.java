@@ -59,7 +59,6 @@ public class SecurityConfig {
                     "/register.html",
                     "/dashboard.html",
                     "/admin-dashboard.html",
-                    "/librarian-dashboard.html",
                     "/student-dashboard.html"
                 ).permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()

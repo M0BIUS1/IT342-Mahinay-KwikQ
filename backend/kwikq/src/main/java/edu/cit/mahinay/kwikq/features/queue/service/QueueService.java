@@ -77,6 +77,16 @@ public class QueueService {
         }
     }
 
+    @Transactional
+    public void adminRemoveFromQueue(Long queueId) {
+        BookQueue queue = bookQueueRepository.findById(queueId)
+                .orElseThrow(() -> new RuntimeException("Queue entry not found"));
+
+        queue.setStatus(BookQueue.QueueStatus.CANCELLED);
+        bookQueueRepository.save(queue);
+        reorderQueue(queue.getBook());
+    }
+
     private QueueResponse mapToResponse(BookQueue queue) {
         return new QueueResponse(queue.getId(), queue.getBook().getTitle(), queue.getBook().getAuthor(), queue.getQueuePosition(), queue.getStatus().toString(), queue.getQueuedAt());
     }

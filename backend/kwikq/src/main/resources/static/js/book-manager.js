@@ -57,10 +57,11 @@ function initBookManager() {
                     <td>${book.author}</td>
                     <td>${book.category}</td>
                     <td>${book.uniqueCode}</td>
-                    <td>
-                        <button class="btn-action" data-action="edit" data-id="${book.id}">Edit</button>
-                        <button class="btn-action danger" data-action="delete" data-id="${book.id}">Delete</button>
-                    </td>
+                            <td>
+                                <button class="btn-action" data-action="edit" data-id="${book.id}">Edit</button>
+                                <button class="btn-action danger" data-action="delete" data-id="${book.id}">Delete</button>
+                                <button class="btn-action" data-action="queue" data-id="${book.id}" data-title="${book.title}">Queue</button>
+                            </td>
                 </tr>
             `)
             .join('');
@@ -215,6 +216,59 @@ function initBookManager() {
             } catch (err) {
                 setStatus(err.message, true);
             }
+        }
+        if (action === 'queue') {
+            clearStatus();
+            try {
+                const bookId = id;
+                const title = target.getAttribute('data-title') || '';
+                const panel = document.getElementById('queuePanel');
+                const bookTitleEl = document.getElementById('queueBookTitle');
+                const listBody = document.getElementById('queueListBody');
+                panel.style.display = 'block';
+                bookTitleEl.textContent = title;
+                listBody.innerHTML = '<tr><td colspan="4">Loading queue...</td></tr>';
+
+                const result = await apiRequest(`/api/queues/book/${bookId}`);
+                if (!Array.isArray(result) || !result.length) {
+                    listBody.innerHTML = '<tr><td colspan="4">No queue entries for this book.</td></tr>';
+                    return;
+                }
+
+                listBody.innerHTML = result.map((q, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${q.userName || q.user.email || q.userId}</td>
+                        <td>${new Date(q.requestedAt).toLocaleString()}</td>
+                        <td>
+                            <button class="btn-action danger" data-action="adminRemoveQueue" data-queueid="${q.id}">Remove</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                setStatus(err.message, true);
+            }
+            return;
+        }
+
+        if (action === 'adminRemoveQueue') {
+            clearStatus();
+            const queueId = target.getAttribute('data-queueid');
+            if (!queueId) return;
+            if (!window.confirm('Remove this queue entry?')) return;
+            try {
+                await apiRequest(`/api/queues/admin/${queueId}`, { method: 'DELETE' });
+                setStatus('Queue entry removed.', false);
+                // refresh current panel
+                const panel = document.getElementById('queuePanel');
+                if (panel && panel.style.display !== 'none') {
+                    // trigger a reload by clicking the same book row - simpler: reload books list
+                    loadBooks();
+                }
+            } catch (err) {
+                setStatus(err.message, true);
+            }
+            return;
         }
     });
 

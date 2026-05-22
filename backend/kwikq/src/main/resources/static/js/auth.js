@@ -15,7 +15,7 @@ function normalizeRole(role) {
     }
 
     if (value === 'STAFF') {
-        return 'LIBRARIAN';
+        return 'ADMIN';
     }
 
     return value;
@@ -108,8 +108,6 @@ function getDashboardPathByRole(role) {
     switch (normalizeRole(role)) {
         case 'ADMIN':
             return '/admin-dashboard.html';
-        case 'LIBRARIAN':
-            return '/librarian-dashboard.html';
         case 'STUDENT':
         default:
             return '/student-dashboard.html';
@@ -127,7 +125,7 @@ function redirectToDashboard(auth) {
     const current = window.location.pathname;
 
     // Stop redirect loops when an unexpected role value maps back to the same page.
-    if (current === target && role !== 'ADMIN' && role !== 'LIBRARIAN' && role !== 'STUDENT') {
+    if (current === target && role !== 'ADMIN' && role !== 'STUDENT') {
         localStorage.removeItem('kwikq_auth');
         sessionStorage.removeItem(REDIRECT_STATE_KEY);
         window.location.href = '/index.html';

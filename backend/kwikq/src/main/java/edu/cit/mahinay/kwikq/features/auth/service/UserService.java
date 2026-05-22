@@ -89,7 +89,7 @@ public class UserService {
         try {
             return User.Role.valueOf(role.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            throw new RuntimeException("Role must be one of: ADMIN, LIBRARIAN, STUDENT");
+            throw new RuntimeException("Role must be one of: ADMIN, STUDENT");
         }
     }
 }

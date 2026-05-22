@@ -80,34 +80,34 @@ class AuthControllerRoleFlowTests {
                 .andExpect(jsonPath("$.message", containsString("Role must be one of")));
     }
 
-    @Test
-    void loginReturnsAssignedLibrarianRole() throws Exception {
+        @Test
+        void loginReturnsAssignedAdminRole() throws Exception {
         String email = uniqueEmail();
         String password = "password123";
 
         Map<String, Object> registerPayload = new HashMap<>();
-        registerPayload.put("name", "Librarian User");
+        registerPayload.put("name", "Admin User");
         registerPayload.put("email", email);
         registerPayload.put("password", password);
-        registerPayload.put("role", "LIBRARIAN");
+        registerPayload.put("role", "ADMIN");
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(registerPayload)))
-                .andExpect(status().isCreated());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerPayload)))
+            .andExpect(status().isCreated());
 
         Map<String, Object> loginPayload = new HashMap<>();
         loginPayload.put("email", email);
         loginPayload.put("password", password);
 
         mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginPayload)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty())
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.role").value("LIBRARIAN"));
-    }
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginPayload)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").isNotEmpty())
+            .andExpect(jsonPath("$.email").value(email))
+            .andExpect(jsonPath("$.role").value("ADMIN"));
+        }
 
     private String uniqueEmail() {
         return "user-" + UUID.randomUUID() + "@example.com";

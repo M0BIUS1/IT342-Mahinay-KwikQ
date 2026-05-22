@@ -39,8 +39,8 @@ class BookManagementAuthorizationTests {
     }
 
     @Test
-    @WithMockUser(roles = "LIBRARIAN")
-    void librarianCanCreateAndUpdateBook() throws Exception {
+    @WithMockUser(roles = "ADMIN")
+    void adminCanCreateAndUpdateBook() throws Exception {
         Long id = createBookAndReturnId();
 
         Map<String, Object> updatePayload = new HashMap<>();
