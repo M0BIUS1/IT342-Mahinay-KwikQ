@@ -34,7 +34,33 @@ class QueueAdapter(
 
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
         val q = items[position]
-        holder.tvText.text = "Book ${q.bookId} — Position: ${q.position}"
+
+        val title = q.bookTitle ?: "Book ${q.bookId}"
+        val author = q.bookAuthor
+        val posNum = q.position ?: q.queuePosition ?: -1
+        val posText = if (posNum > 0) "Position: $posNum" else ""
+
+        val dateRaw = q.queuedAt ?: q.requestedAt
+        val dateText = dateRaw?.let {
+            try { it.replace('T', ' ').split('.')[0] } catch (e: Exception) { it }
+        }
+
+        val queuedBy = when {
+            !q.userName.isNullOrBlank() -> q.userName
+            !q.userEmail.isNullOrBlank() -> q.userEmail
+            q.userId != null -> "User ${q.userId}"
+            else -> null
+        }
+
+        val lines = StringBuilder()
+        lines.append(title)
+        if (!author.isNullOrBlank()) lines.append(" — $author")
+        if (posText.isNotEmpty()) lines.append("\n$posText")
+        if (!dateText.isNullOrBlank()) lines.append("\nAdded: $dateText")
+        if (!queuedBy.isNullOrBlank()) lines.append("\nQueued by: $queuedBy")
+
+        holder.tvText.text = lines.toString()
+
         holder.btnRemove.isEnabled = enabled
         holder.btnRemove.alpha = if (enabled) 1.0f else 0.5f
         holder.itemView.alpha = if (enabled) 1.0f else 0.6f
