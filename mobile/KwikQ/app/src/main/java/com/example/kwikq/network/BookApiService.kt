@@ -1,5 +1,7 @@
 package com.example.kwikq.network
 
+import com.example.kwikq.network.models.Book
+import com.example.kwikq.network.models.BookCopyItem
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -11,6 +13,9 @@ interface BookApiService {
 
     @GET("api/books/{id}")
     fun getBook(@Path("id") id: Long): Call<Book>
+    
+        @GET("api/books/{id}/copies")
+        fun getBookCopies(@Path("id") id: Long): Call<List<BookCopyItem>>
 
     @GET("api/books/categories")
     fun getCategories(): Call<List<String>>

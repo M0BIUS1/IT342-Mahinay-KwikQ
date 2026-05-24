@@ -6,6 +6,7 @@ import edu.cit.mahinay.kwikq.features.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,6 +15,10 @@ import java.util.Optional;
 @Repository
 public interface BookQueueRepository extends JpaRepository<BookQueue, Long> {
     Optional<BookQueue> findByBookAndUserAndStatus(Book book, User user, BookQueue.QueueStatus status);
+
+    @Query("SELECT COALESCE(MAX(b.queuePosition), 0) FROM BookQueue b WHERE b.book = ?1 AND b.status = ?2")
+    Integer findMaxQueuePositionByBookAndStatus(Book book, BookQueue.QueueStatus status);
+
     Integer findMaxQueuePositionByBook(Book book);
     List<BookQueue> findByBookAndStatusOrderByQueuePosition(Book book, BookQueue.QueueStatus status);
     Page<BookQueue> findByUserAndStatus(User user, BookQueue.QueueStatus status, Pageable pageable);

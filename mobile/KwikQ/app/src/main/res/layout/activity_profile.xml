@@ -12,6 +12,49 @@
         android:textSize="20sp"
         android:paddingBottom="8dp" />
 
+    <Switch
+        android:id="@+id/switchDebugOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show debug overlay"
+        android:checked="false"
+        android:layout_marginBottom="8dp" />
+
+    <Switch
+        android:id="@+id/switchAnalytics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send retry analytics (opt-in)"
+        android:checked="false"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sampling %" />
+
+        <EditText
+            android:id="@+id/etSamplingPercent"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_marginStart="8dp"
+            android:text="10" />
+
+        <Button
+            android:id="@+id/btnSaveSampling"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progressProfile"
         android:layout_width="wrap_content"

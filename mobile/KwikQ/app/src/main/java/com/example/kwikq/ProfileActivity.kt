@@ -7,6 +7,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.kwikq.network.RetrofitClient
+import android.content.Context
+import android.widget.Switch
+import android.widget.Toast
+import android.widget.Button
+import com.example.kwikq.DebugOverlay
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var container: LinearLayout
@@ -17,6 +22,46 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(R.layout.activity_profile)
         container = findViewById(R.id.profileContainer)
         progress = findViewById(R.id.progressProfile)
+
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val switch = findViewById<Switch>(R.id.switchDebugOverlay)
+        val enabled = prefs.getBoolean("debug_overlay_enabled", false)
+        switch.isChecked = enabled
+        switch.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("debug_overlay_enabled", isChecked).apply()
+            if (isChecked) {
+                DebugOverlay.attach(this)
+                DebugOverlay.refresh(this)
+                Toast.makeText(this, "Debug overlay enabled", Toast.LENGTH_SHORT).show()
+            } else {
+                DebugOverlay.detach(this)
+                Toast.makeText(this, "Debug overlay disabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Analytics controls
+        val switchAnalytics = findViewById<Switch>(R.id.switchAnalytics)
+        val etSampling = findViewById<android.widget.EditText>(R.id.etSamplingPercent)
+        val analyticsEnabled = prefs.getBoolean("analytics_enabled", false)
+        val sampling = prefs.getInt("analytics_sample_percent", 10)
+        switchAnalytics.isChecked = analyticsEnabled
+        etSampling.setText(sampling.toString())
+        switchAnalytics.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("analytics_enabled", isChecked).apply()
+            Toast.makeText(this, if (isChecked) "Analytics enabled" else "Analytics disabled", Toast.LENGTH_SHORT).show()
+        }
+        val btnSaveSampling = findViewById<Button>(R.id.btnSaveSampling)
+        val saveSampling = {
+            val v = etSampling.text.toString().toIntOrNull() ?: 10
+            val s = v.coerceIn(0, 100)
+            prefs.edit().putInt("analytics_sample_percent", s).apply()
+            Toast.makeText(this, "Sampling set to $s%", Toast.LENGTH_SHORT).show()
+        }
+        btnSaveSampling.setOnClickListener { saveSampling() }
+        btnSaveSampling.setOnLongClickListener {
+            saveSampling()
+            true
+        }
 
         loadProfile()
     }

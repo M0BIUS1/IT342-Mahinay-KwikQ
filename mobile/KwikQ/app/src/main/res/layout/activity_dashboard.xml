@@ -37,13 +37,6 @@
             android:layout_marginTop="8dp" />
 
         <Button
-            android:id="@+id/btnPayments"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Payments & Fines"
-            android:layout_marginTop="8dp" />
-
-        <Button
             android:id="@+id/btnProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

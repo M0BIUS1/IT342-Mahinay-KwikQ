@@ -1,5 +1,6 @@
 package com.example.kwikq.network
 
+import com.example.kwikq.network.models.QueueItem
 import retrofit2.Call
 import retrofit2.http.DELETE
 import retrofit2.http.GET

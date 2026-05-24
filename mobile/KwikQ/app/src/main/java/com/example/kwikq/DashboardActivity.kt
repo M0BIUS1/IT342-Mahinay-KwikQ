@@ -22,8 +22,5 @@ class DashboardActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
-        findViewById<Button>(R.id.btnPayments).setOnClickListener {
-            startActivity(Intent(this, PaymentsActivity::class.java))
-        }
     }
 }

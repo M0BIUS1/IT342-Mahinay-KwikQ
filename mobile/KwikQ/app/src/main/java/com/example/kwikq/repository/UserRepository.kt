@@ -5,7 +5,9 @@ import com.example.kwikq.database.AppDatabase
 import com.example.kwikq.database.entity.User
 import com.example.kwikq.database.entity.UserProfile
 import com.example.kwikq.network.AuthApiService
-import com.example.kwikq.network.AuthModels
+import com.example.kwikq.network.AuthResponse
+import com.example.kwikq.network.LoginRequest
+import com.example.kwikq.network.RegisterRequest
 
 class UserRepository(private val context: Context, private val authService: AuthApiService) {
     private val database = AppDatabase.getDatabase(context)
@@ -15,9 +17,9 @@ class UserRepository(private val context: Context, private val authService: Auth
     /**
      * Login user and cache in local database
      */
-    suspend fun loginUser(email: String, password: String): Result<AuthModels.AuthResponse> {
+    suspend fun loginUser(email: String, password: String): Result<AuthResponse> {
         return try {
-            val response = authService.login(AuthModels.LoginRequest(email, password))
+            val response = authService.login(LoginRequest(email, password)).execute()
             if (response.isSuccessful) {
                 val authResponse = response.body()
                 if (authResponse != null) {
@@ -49,11 +51,11 @@ class UserRepository(private val context: Context, private val authService: Auth
         name: String,
         email: String,
         password: String
-    ): Result<AuthModels.AuthResponse> {
+    ): Result<AuthResponse> {
         return try {
             val response = authService.register(
-                AuthModels.RegisterRequest(name, email, password)
-            )
+                RegisterRequest(name, email, password)
+            ).execute()
             if (response.isSuccessful) {
                 val authResponse = response.body()
                 if (authResponse != null) {

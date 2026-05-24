@@ -14,7 +14,6 @@ Detected features (from codebase):
 - queue
 - borrowing
 - reviews
-- payments
 - wishlist
 - notifications
 - audit-log
@@ -63,11 +62,6 @@ backend/kwikq/src/main/java/edu/cit/mahinay/kwikq/features/
     ReviewService.java
     ReviewRepository.java
     ReviewEntity.java
-  payments/
-    PaymentController.java
-    PaymentService.java
-    PaymentRepository.java
-    PaymentEntity.java
   wishlist/
     WishlistController.java
     WishlistService.java

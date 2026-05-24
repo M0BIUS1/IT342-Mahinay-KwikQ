@@ -5,7 +5,11 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Button
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.kwikq.network.NetworkUtils
 import com.example.kwikq.network.RetrofitClient
 
 class BorrowingActivity : AppCompatActivity() {
@@ -19,6 +23,17 @@ class BorrowingActivity : AppCompatActivity() {
         progress = findViewById(R.id.progressBorrowing)
 
         loadHistory()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        DebugOverlay.attach(this)
+        DebugOverlay.refresh(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        DebugOverlay.detach(this)
     }
 
     private fun loadHistory() {
@@ -54,11 +69,61 @@ class BorrowingActivity : AppCompatActivity() {
             return
         }
         items.forEach { b ->
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+            row.setPadding(8,12,8,12)
+
             val tv = TextView(this)
             tv.text = "Copy ${b.bookCopyId} — Borrowed: ${b.borrowedAt}"
-            tv.setPadding(8,12,8,12)
-            container.addView(tv)
+            tv.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+
+            row.addView(tv)
+
+            if (b.returnedAt == null) {
+                val btnReturn = Button(this)
+                btnReturn.text = "Return"
+                btnReturn.setOnClickListener {
+                    AlertDialog.Builder(this)
+                        .setTitle("Return book")
+                        .setMessage("Return copy ${b.bookCopyId}?")
+                        .setPositiveButton("Yes") { _, _ -> performReturn(b.id, btnReturn) }
+                        .setNegativeButton("No", null)
+                        .show()
+                }
+                row.addView(btnReturn)
+            }
+
+            container.addView(row)
         }
+    }
+
+    private fun performReturn(borrowingId: Long, btn: Button) {
+        btn.isEnabled = false
+        progress.visibility = View.VISIBLE
+        val callFactory = { RetrofitClient.borrowingApiService.returnBook(borrowingId) }
+        NetworkUtils.enqueueWithRetry(callFactory, 3, 400, description = "ReturnBorrowing:$borrowingId", onRetry = { attempt ->
+            Toast.makeText(this@BorrowingActivity, "Retrying return (attempt $attempt)", Toast.LENGTH_SHORT).show()
+        }, callback = object : retrofit2.Callback<com.example.kwikq.network.MessageResponse> {
+            override fun onResponse(
+                call: retrofit2.Call<com.example.kwikq.network.MessageResponse>,
+                response: retrofit2.Response<com.example.kwikq.network.MessageResponse>
+            ) {
+                progress.visibility = View.GONE
+                btn.isEnabled = true
+                if (response.isSuccessful) {
+                    Toast.makeText(this@BorrowingActivity, response.body()?.message ?: "Returned", Toast.LENGTH_SHORT).show()
+                    loadHistory()
+                } else {
+                    Toast.makeText(this@BorrowingActivity, "Failed to return", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<com.example.kwikq.network.MessageResponse>, t: Throwable) {
+                progress.visibility = View.GONE
+                btn.isEnabled = true
+                Toast.makeText(this@BorrowingActivity, "Network error: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun displayError(msg: String) {

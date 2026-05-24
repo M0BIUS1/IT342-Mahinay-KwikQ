@@ -1,5 +1,7 @@
 package com.example.kwikq
 
+import com.example.kwikq.network.NetworkUtils
+import okhttp3.Request
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,6 +12,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.concurrent.atomic.AtomicInteger
+import okio.Timeout
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -38,7 +41,8 @@ class NetworkUtilsRobolectricTest {
                 override fun isCanceled(): Boolean = false
                 override fun cancel() {}
                 override fun execute(): Response<Void> = Response.success(null)
-                override fun request() = okhttp3.Request.Builder().url("http://localhost/").build()
+                override fun request(): Request = Request.Builder().url("http://localhost/").build()
+                override fun timeout(): Timeout = Timeout.NONE
             }
         }
 

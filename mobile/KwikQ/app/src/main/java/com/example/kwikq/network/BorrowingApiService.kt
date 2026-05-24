@@ -1,5 +1,6 @@
 package com.example.kwikq.network
 
+import com.example.kwikq.network.models.Borrowing
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.POST

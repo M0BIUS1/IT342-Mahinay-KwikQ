@@ -24,10 +24,10 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <LinearLayout
-        android:id="@+id/queueContainer"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvQueues"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
