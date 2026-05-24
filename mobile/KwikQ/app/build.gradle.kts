@@ -1,11 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
 }
 
 val emulatorBaseUrl = (project.findProperty("EMULATOR_BASE_URL") as String?)
     ?: (project.findProperty("DEBUG_BASE_URL") as String?)
     ?: "http://10.0.2.2:8080/"
-val deviceBaseUrl = (project.findProperty("DEVICE_BASE_URL") as String?) ?: "http://192.168.1.100:8080/"
+val deviceBaseUrl = (project.findProperty("DEVICE_BASE_URL") as String?)
+    ?: (project.findProperty("DEBUG_BASE_URL") as String?)
+    ?: "http://10.0.2.2:8080/"
 val releaseBaseUrl = (project.findProperty("RELEASE_BASE_URL") as String?) ?: "https://api.example.com/"
 
 android {
@@ -68,17 +71,20 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
     
     // OkHttp - for JWT interceptor
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     
     // Room Database
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.7.0"
     implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     
     testImplementation(libs.junit)
+    testImplementation("org.robolectric:robolectric:4.10.3")
+    testImplementation("androidx.test:core:1.5.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

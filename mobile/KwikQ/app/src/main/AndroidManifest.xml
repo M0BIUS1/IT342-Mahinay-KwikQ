@@ -34,6 +34,34 @@
             android:name=".HomeActivity"
             android:exported="false"
             android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".BooksActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".BookDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".QueueActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".BorrowingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
+        <activity
+            android:name=".RetryLogActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KwikQ" />
     </application>
 
 </manifest>

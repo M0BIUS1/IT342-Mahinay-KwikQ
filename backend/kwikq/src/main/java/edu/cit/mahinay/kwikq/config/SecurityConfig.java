@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 // Public endpoints - registration and login
                 .requestMatchers("/api/auth/**").permitAll()
+                // Allow analytics from mobile clients without authentication
+                .requestMatchers("/api/analytics/**").permitAll()
                 // Health check
                 .requestMatchers("/api/health").permitAll()
                 // All other endpoints require authentication

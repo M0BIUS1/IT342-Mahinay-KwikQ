@@ -2,10 +2,12 @@ package com.example.kwikq.database.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "user_profiles",
+    indices = [Index(value = ["userId"])],
     foreignKeys = [
         ForeignKey(
             entity = User::class,

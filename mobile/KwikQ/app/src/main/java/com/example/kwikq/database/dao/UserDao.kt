@@ -13,10 +13,10 @@ interface UserDao {
     suspend fun insert(user: User): Long
 
     @Update
-    suspend fun update(user: User)
+    suspend fun update(user: User): Int
 
     @Delete
-    suspend fun delete(user: User)
+    suspend fun delete(user: User): Int
 
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: Long): User?
@@ -25,8 +25,8 @@ interface UserDao {
     suspend fun getUserByEmail(email: String): User?
 
     @Query("DELETE FROM users WHERE id = :userId")
-    suspend fun deleteUserById(userId: Long)
+    suspend fun deleteUserById(userId: Long): Int
 
     @Query("DELETE FROM users")
-    suspend fun deleteAllUsers()
+    suspend fun deleteAllUsers(): Int
 }

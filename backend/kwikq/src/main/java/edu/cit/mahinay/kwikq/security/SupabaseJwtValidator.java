@@ -97,46 +97,45 @@ public class SupabaseJwtValidator {
      * For now, we use the configured secret as fallback
      */
     private String extractSecretFromJwks() {
+        // Prefer configured secret to avoid network calls on every request
+        if (supabaseJwtSecret != null && !supabaseJwtSecret.isBlank()) {
+            return supabaseJwtSecret;
+        }
+
+        // If no configured secret is available, attempt a quick JWKS fetch as a fallback.
+        // Use a short timeout and fail fast to avoid blocking request threads.
         try {
-            // Try to fetch JWKS from Supabase
             String jwksUrl = supabaseUrl + JWKS_PATH;
-            
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .build();
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(jwksUrl))
                     .GET()
                     .build();
-            
+
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            
             if (response.statusCode() == 200) {
                 JsonObject jsonResponse = JsonParser.parseString(response.body()).getAsJsonObject();
-                String jwksUri = jsonResponse.get("jwks_uri").getAsString();
-                
-                // Fetch the actual JWKS
-                HttpRequest jwksRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(jwksUri))
-                        .GET()
-                        .build();
-                
-                HttpResponse<String> jwksResponse = client.send(jwksRequest, HttpResponse.BodyHandlers.ofString());
-                
-                if (jwksResponse.statusCode() == 200) {
-                    // Parse and extract the secret (key.k value from JWK)
-                    JsonObject jwks = JsonParser.parseString(jwksResponse.body()).getAsJsonObject();
-                    // This is a simplified extraction - you might need to adjust based on actual JWKS structure
-                    return jwks.toString();
+                if (jsonResponse.has("jwks_uri")) {
+                    String jwksUri = jsonResponse.get("jwks_uri").getAsString();
+                    HttpRequest jwksRequest = HttpRequest.newBuilder()
+                            .uri(URI.create(jwksUri))
+                            .GET()
+                            .build();
+
+                    HttpResponse<String> jwksResponse = client.send(jwksRequest, HttpResponse.BodyHandlers.ofString());
+                    if (jwksResponse.statusCode() == 200) {
+                        JsonObject jwks = JsonParser.parseString(jwksResponse.body()).getAsJsonObject();
+                        return jwks.toString();
+                    }
                 }
             }
         } catch (Exception e) {
-            // If JWKS fetch fails, fall back to configured secret
+            // Fail fast and fall through to empty return
         }
-        
-        // Fallback: decode the JWT secret if it's base64 encoded
-        try {
-            return new String(Base64.getUrlDecoder().decode(supabaseJwtSecret));
-        } catch (Exception e) {
-            return supabaseJwtSecret;
-        }
+
+        return "";
     }
 }

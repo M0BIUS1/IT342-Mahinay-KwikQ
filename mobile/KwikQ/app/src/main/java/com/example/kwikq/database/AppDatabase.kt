@@ -11,7 +11,7 @@ import com.example.kwikq.database.entity.UserProfile
 
 @Database(
     entities = [User::class, UserProfile::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

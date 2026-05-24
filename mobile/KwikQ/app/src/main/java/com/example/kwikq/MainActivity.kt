@@ -35,8 +35,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         sessionManager = SessionManager(this)
-        userRepository = UserRepository(this, RetrofitClient.authApiService)
-        
+
         if (sessionManager.isLoggedIn()) {
             val intent = Intent(this, HomeActivity::class.java)
             intent.putExtra("userName", sessionManager.getName())
@@ -46,6 +45,8 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        userRepository = UserRepository(this, RetrofitClient.authApiService)
 
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
@@ -92,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (result.isSuccess) {
                     val auth = result.getOrNull()!!
-                    sessionManager.saveAuthSession(auth.id, auth.id, auth.name, auth.email, auth.role)
+                    sessionManager.saveAuthSession(auth.token, auth.id, auth.name, auth.email, auth.role)
                     
                     // Show success confirmation
                     android.widget.Toast.makeText(this@MainActivity, "✓ Login successful! Welcome back, ${auth.name}!", android.widget.Toast.LENGTH_LONG).show()

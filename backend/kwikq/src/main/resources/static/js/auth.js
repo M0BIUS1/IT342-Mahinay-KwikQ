@@ -51,6 +51,8 @@ function saveAuth(data) {
         email: data.email,
         role: normalizeRole(data.role)
     }));
+    // Backwards-compatible JWT key used by some pages
+    try { localStorage.setItem('jwtToken', data.token); } catch {}
 }
 
 function getAuth() {
@@ -74,6 +76,7 @@ function getAuth() {
 
 function logout() {
     localStorage.removeItem('kwikq_auth');
+    localStorage.removeItem('jwtToken');
     window.location.href = '/index.html';
 }
 

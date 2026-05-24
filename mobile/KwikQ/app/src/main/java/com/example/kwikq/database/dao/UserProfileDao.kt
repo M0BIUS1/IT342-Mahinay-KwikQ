@@ -13,10 +13,10 @@ interface UserProfileDao {
     suspend fun insert(userProfile: UserProfile): Long
 
     @Update
-    suspend fun update(userProfile: UserProfile)
+    suspend fun update(userProfile: UserProfile): Int
 
     @Delete
-    suspend fun delete(userProfile: UserProfile)
+    suspend fun delete(userProfile: UserProfile): Int
 
     @Query("SELECT * FROM user_profiles WHERE id = :profileId")
     suspend fun getProfileById(profileId: Long): UserProfile?
@@ -25,8 +25,8 @@ interface UserProfileDao {
     suspend fun getProfileByUserId(userId: Long): UserProfile?
 
     @Query("DELETE FROM user_profiles WHERE userId = :userId")
-    suspend fun deleteProfileByUserId(userId: Long)
+    suspend fun deleteProfileByUserId(userId: Long): Int
 
     @Query("DELETE FROM user_profiles")
-    suspend fun deleteAllProfiles()
+    suspend fun deleteAllProfiles(): Int
 }

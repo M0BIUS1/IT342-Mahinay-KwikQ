@@ -32,8 +32,8 @@ public class QueueService {
         BookQueue existing = bookQueueRepository.findByBookAndUserAndStatus(book, user, BookQueue.QueueStatus.WAITING).orElse(null);
         if (existing != null) throw new RuntimeException("User already in queue for this book");
 
-        Integer maxPosition = bookQueueRepository.findMaxQueuePositionByBook(book);
-        Integer nextPosition = (maxPosition == null) ? 1 : maxPosition + 1;
+        Integer maxPosition = bookQueueRepository.findMaxQueuePositionByBookAndStatus(book, BookQueue.QueueStatus.WAITING);
+        Integer nextPosition = (maxPosition == null || maxPosition == 0) ? 1 : maxPosition + 1;
 
         BookQueue queue = new BookQueue(book, user, nextPosition);
         BookQueue saved = bookQueueRepository.save(queue);
@@ -54,7 +54,8 @@ public class QueueService {
     }
 
     public Page<QueueResponse> getUserQueue(User user, Pageable pageable) {
-        return bookQueueRepository.findByBookAndStatus(null, BookQueue.QueueStatus.WAITING, pageable).map(this::mapToResponse);
+        return bookQueueRepository.findByUserAndStatus(user, BookQueue.QueueStatus.WAITING, pageable)
+                .map(this::mapToResponse);
     }
 
     public List<QueueResponse> getBookQueue(Long bookId) {
@@ -88,6 +89,14 @@ public class QueueService {
     }
 
     private QueueResponse mapToResponse(BookQueue queue) {
-        return new QueueResponse(queue.getId(), queue.getBook().getTitle(), queue.getBook().getAuthor(), queue.getQueuePosition(), queue.getStatus().toString(), queue.getQueuedAt());
+        QueueResponse resp = new QueueResponse(queue.getId(), queue.getBook().getTitle(), queue.getBook().getAuthor(), queue.getQueuePosition(), queue.getStatus().toString(), queue.getQueuedAt());
+        if (queue.getUser() != null) {
+            resp.setUserId(queue.getUser().getId());
+            resp.setUserName(queue.getUser().getName());
+            resp.setUserEmail(queue.getUser().getEmail());
+        }
+        // maintain legacy field name compatibility
+        resp.setRequestedAt(queue.getQueuedAt());
+        return resp;
     }
 }
